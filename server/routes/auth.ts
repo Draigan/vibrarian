@@ -15,6 +15,60 @@ const supabase = createClient(
 
 router.use(cookieParser());
 
+router.get("/session", async (req, res) => {
+  const token = req.cookies.sb_token;
+
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  const supabaseUser = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    }
+  );
+
+  const { data, error } = await supabaseUser.auth.getUser();
+
+  if (error || !data?.user) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+
+  res.json({ user: data.user });
+});
+
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ error: "Missing fields" });
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) return res.status(401).json({ error: error.message });
+
+  res.cookie("sb_token", data.session.access_token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 60 * 60 * 24 * 7 * 1000, // 1 week
+  });
+
+  res.json({ user: data.user });
+});
+
+router.post("/logout", (req, res) => {
+  res.clearCookie("sb_token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+  });
+  res.json({ message: "Logged out successfully" });
+});
+
 router.post("/signup", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: "Missing fields" });
@@ -22,7 +76,7 @@ router.post("/signup", async (req, res) => {
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
-    //email_confirm: true,
+    email_confirm: true,
   });
 
   if (error) return res.status(500).json({ error: error.message });
@@ -46,5 +100,6 @@ router.post("/signup", async (req, res) => {
 
   res.json({ user: login.data.user });
 });
+
 
 export default router;

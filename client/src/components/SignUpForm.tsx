@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -10,40 +11,23 @@ export default function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const { signup } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage("");
+ 
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setMessage("");
 
-    if (password !== confirmPassword) {
-      setMessage("Passwords do not match.");
-      return;
-    }
+  if (password !== confirmPassword) {
+    setMessage("Passwords do not match.");
+    return;
+  }
 
-    setLoading(true);
-
-    try {
-      const res = await fetch("http://localhost:3000/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage(data.error || "Signup failed");
-      } else {
-        setMessage("Signup successful! You're now logged in.");
-      }
-    } catch (err) {
-      setMessage("An unexpected error occurred.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  setLoading(true);
+  const result = await signup(email, password);
+  setMessage(result.message);
+  setLoading(false);
+}; 
   return (
     <Card className="w-full max-w-md mx-auto mt-10">
       <CardHeader>
