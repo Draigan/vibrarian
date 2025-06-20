@@ -2,6 +2,9 @@ import { useState } from "react";
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatBubble, ChatBubbleMessage, ChatBubbleTimestamp, ChatBubbleAvatar } from "./ui/chat/chat-bubble";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
+import { Button } from "./ui/button";
+import ChatHistory from "./ChatHistory";
+import { useChatSession } from "@/hooks/useChatSession";
 
 interface Message {
   id: string;
@@ -14,6 +17,8 @@ export function Chat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const { sessionId } = useChatSession();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -25,6 +30,7 @@ export function Chat() {
     };
 
     const updatedMessages = [...messages, userMessage];
+    const lastMessage = updatedMessages[updatedMessages.length - 1];
     setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
@@ -34,7 +40,8 @@ export function Chat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: updatedMessages.map(({ role, content }) => ({ role, content })),
+          sessionId: sessionId,
+          message: { role: lastMessage.role, content: lastMessage.content },
         }),
       });
 
@@ -54,36 +61,48 @@ export function Chat() {
     }
   };
 
-return (
-  <div className="flex flex-col h-full w-full">
-    <div className="flex-1 overflow-y-auto">
-      <ChatMessageList>
-        {messages.map((msg) => (
-          <ChatBubble
-            key={msg.id}
-            variant={msg.role === "user" ? "sent" : "received"}
-          >
-             <ChatBubbleAvatar fallback={msg.role === "user" ? "U" : "A"} />
+  return (
+    <div className="flex flex-col h-full w-full">
+      <div className="flex justify-between px-4 py-2 border-b">
 
-            <ChatBubbleMessage variant={msg.role === "user" ? "sent" : "received"}>
-              {msg.content}
-             <ChatBubbleTimestamp timestamp={new Date().toLocaleTimeString()} />
-            </ChatBubbleMessage>
+        <ChatHistory />
+        <div>
+          Session: {sessionId}
+        </div>
+        <Button
+          variant="outline"
+          className="hover:!bg-primary hover:text-primary-foreground border-primary" >
+          + New Chat
+        </Button>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        <ChatMessageList>
+          {messages.map((msg) => (
+            <ChatBubble
+              key={msg.id}
+              variant={msg.role === "user" ? "sent" : "received"}
+            >
+              <ChatBubbleAvatar fallback={msg.role === "user" ? "U" : "A"} />
 
-          </ChatBubble>
-        ))}
-      </ChatMessageList>
+              <ChatBubbleMessage variant={msg.role === "user" ? "sent" : "received"}>
+                {msg.content}
+                <ChatBubbleTimestamp timestamp={new Date().toLocaleTimeString()} />
+              </ChatBubbleMessage>
+
+            </ChatBubble>
+          ))}
+        </ChatMessageList>
+      </div>
+
+      <div className="border-t">
+        <ChatInput
+          input={input}
+          handleInputChange={(e) => setInput(e.target.value)}
+          handleSubmit={handleSubmit}
+          isLoading={isLoading}
+          stop={() => { }}
+        />
+      </div>
     </div>
-
-    <div className="border-t">
-      <ChatInput
-        input={input}
-        handleInputChange={(e) => setInput(e.target.value)}
-        handleSubmit={handleSubmit}
-        isLoading={isLoading}
-        stop={() => {}}
-      />
-    </div>
-  </div>
-);
+  );
 }

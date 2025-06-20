@@ -1,34 +1,45 @@
 import { Request, Response, NextFunction } from "express";
-import { createClient } from "@supabase/supabase-js";
+import { jwtVerify } from "jose";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET!;
+const ISSUER = "https://icsboammppiujydsidaj.supabase.co/auth/v1";
+
+if (!SUPABASE_JWT_SECRET) {
+  throw new Error("Missing SUPABASE_JWT_SECRET in .env");
+}
+
+const secret = new TextEncoder().encode(SUPABASE_JWT_SECRET);
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = req.cookies?.sb_token;
 
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized: No token found" });
+    return res.status(401).json({ error: "Unauthorized: No token provided" });
   }
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      global: {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    }
-  );
+  try {
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: ISSUER,
+      audience: "authenticated",
+    });
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+    const user = {
+      id: payload.sub,
+      email: payload.email,
+    };
 
-  if (error || !user) {
+    console.log("🔐 Authenticated user:", user.email);
+
+    // Attach decoded info to request object
+    (req as any).user = user;
+
+    next();
+  } catch (err: any) {
+    console.error("❌ JWT verification failed:", err.message);
     return res.status(401).json({ error: "Unauthorized: Invalid token" });
   }
-
-  // Attach user info to the request object
-  (req as any).user = user;
-
-  next();
 }
+

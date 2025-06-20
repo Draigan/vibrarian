@@ -1,18 +1,19 @@
 import express from "express";
 import crypto from "crypto";
-import { requireAuth } from "../middleware/authMiddleWare";
+import { requireAuth } from "../middleware/authMiddleWare.js";
 const router = express.Router();
 
-router.post("/chat",requireAuth, async (req, res) => {
+// NOTE: Refactor requireAuth so its not in every call
+router.post("/chat", requireAuth, async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { message, sessionId } = req.body;
 
-    if (!messages || !Array.isArray(messages)) {
+    if (!message) {
       return res.status(400).json({ error: "Invalid message format." });
     }
 
-
-    const userMessage = req.body.messages?.[req.body.messages.length - 1]?.content || "";
+    console.log(req.body);
+    const userMessage = message?.content || "";
     console.log("User: ",userMessage);
     // Forward the message to n8n
     const n8nResponse = await fetch("http://localhost:5678/webhook/n8n-chat", {

@@ -83,7 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password })
       });
       if (!res.ok) {
-        throw new Error('Login failed');
+        const data = await res.json();
+        throw new Error(data.error || 'Invalid email or password');
       }
       // If login was successful, fetch the user info (using the cookie set by backend)
       const data = await res.json();
@@ -92,11 +93,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // (Alternatively, call fetchCurrentUser() again if the login endpoint doesn't return user data)
       setUser(data.user);
       // Redirect to a protected page (optional, e.g. to /chat)
-      navigate('/chat');
+      navigate('/');
     } catch (err) {
       console.error('Login error:', err);
       setUser(null);
-      // Handle login error (e.g. show message to user)
+      throw err;
     }
   };
 
@@ -114,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
     }
   };
+
 
   const value = { user, login, logout, signup };
 

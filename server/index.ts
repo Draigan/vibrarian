@@ -2,8 +2,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authRouter from "./routes/auth"; 
-import chatRoutes from "./routes/chat";
+import authRouter from "./routes/auth.js"; 
+import chatRoutes from "./routes/chat.js";
 
 const app = express();
 const port = 3000;

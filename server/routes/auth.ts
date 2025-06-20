@@ -1,37 +1,17 @@
 // server/routes/auth.ts
 import express from "express";
-import { createClient } from "@supabase/supabase-js";
-import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-
-dotenv.config();
+import { supabase, createUserClient } from "../db/supabase.js";
 
 const router = express.Router();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 router.use(cookieParser());
 
 router.get("/session", async (req, res) => {
   const token = req.cookies.sb_token;
-
   if (!token) return res.status(401).json({ error: "Not authenticated" });
 
-  const supabaseUser = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    }
-  );
-
+  const supabaseUser = createUserClient(token);
   const { data, error } = await supabaseUser.auth.getUser();
 
   if (error || !data?.user) {
@@ -47,14 +27,13 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
   if (error) return res.status(401).json({ error: error.message });
 
   res.cookie("sb_token", data.session.access_token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 7 * 1000, // 1 week
+    maxAge: 60 * 60 * 24 * 7 * 1000,
   });
 
   res.json({ user: data.user });
@@ -63,7 +42,7 @@ router.post("/login", async (req, res) => {
 router.post("/logout", (req, res) => {
   res.clearCookie("sb_token", {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   });
   res.json({ message: "Logged out successfully" });
@@ -71,7 +50,8 @@ router.post("/logout", (req, res) => {
 
 router.post("/signup", async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Missing fields" });
+  if (!email || !password)
+    return res.status(400).json({ error: "Missing fields" });
 
   const { data, error } = await supabase.auth.admin.createUser({
     email,
@@ -86,20 +66,18 @@ router.post("/signup", async (req, res) => {
     role: "editor"
   });
 
-  // Start a session here by logging them in immediately
   const login = await supabase.auth.signInWithPassword({ email, password });
   if (login.error) return res.status(500).json({ error: login.error.message });
 
-  // Set cookie with access token securely
   res.cookie("sb_token", login.data.session.access_token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 7 * 1000, // 1 week
+    maxAge: 60 * 60 * 24 * 7 * 1000,
   });
 
   res.json({ user: login.data.user });
 });
 
-
 export default router;
+
