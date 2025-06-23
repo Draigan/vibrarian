@@ -5,7 +5,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET!;
-const ISSUER = "https://icsboammppiujydsidaj.supabase.co/auth/v1";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const ISSUER = `${SUPABASE_URL}/auth/v1`;
 
 if (!SUPABASE_JWT_SECRET) {
   throw new Error("Missing SUPABASE_JWT_SECRET in .env");

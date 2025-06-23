@@ -5,10 +5,10 @@ import ChatPage from "./pages/ChatPage";
 import ProtectedRoute from "./ProtectedRoute"; 
 import LogoutPage from "./pages/LogoutPage";
 import WelcomePage from "./pages/WelcomePage";
-import { useSessionListener } from "./hooks/useSessionListener";
+//import { useSessionListener } from "./hooks/useSessionListener";
 
 export default function App() {
-  useSessionListener(10000);
+  //useSessionListener(); // Needs fixing
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />

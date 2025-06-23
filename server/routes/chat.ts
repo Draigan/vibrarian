@@ -1,9 +1,9 @@
 import express from "express";
 import crypto from "crypto";
 import { requireAuth } from "../middleware/authMiddleWare.js";
+import { enqueueMessage } from "../utils/messageQueue.js";
 const router = express.Router();
 
-// NOTE: Refactor requireAuth so its not in every call
 router.post("/chat", requireAuth, async (req, res) => {
   try {
     const { message, sessionId } = req.body;
@@ -13,8 +13,15 @@ router.post("/chat", requireAuth, async (req, res) => {
     }
 
     console.log(req.body);
+    const sb_token = req.cookies.sb_token;
     const userMessage = message?.content || "";
-    console.log("User: ",userMessage);
+    try {
+      enqueueMessage({ token: sb_token, sessionId, sender: "user", content: userMessage });
+    } catch (err) {
+      console.error("❌ Failed to insert user message:", userMessage);
+      console.error(err);
+    }
+    console.log("User: ", userMessage);
     // Forward the message to n8n
     const n8nResponse = await fetch("http://localhost:5678/webhook/n8n-chat", {
       method: "POST",
@@ -30,7 +37,15 @@ router.post("/chat", requireAuth, async (req, res) => {
     const data = await n8nResponse.json();
 
     const reply = data.reply || "No response from n8n.";
-    console.log("AI: ",reply);
+
+
+    try {
+      enqueueMessage({ token: sb_token, sessionId, sender: "assistant", content: reply });
+    } catch (err) {
+      console.error("❌ Failed to insert assistant message:", userMessage);
+      console.error(err);
+    }
+    console.log("Assistant: ", reply);
     return res.json({
       id: crypto.randomUUID(),
       role: "assistant",

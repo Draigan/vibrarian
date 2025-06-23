@@ -1,24 +1,27 @@
 import { cn } from "@/lib/utils" // Optional, or use plain className
 
 export function SessionButton({
+  id = 0,
   title = "Untitled Session",
-  timestamp = new Date(),
+  timestamp = "now",
   messageCount = 0,
   isActive = false,
   onClick,
 }: {
+  id: number
   title?: string
-  timestamp?: Date
+  timestamp?: string
   messageCount?: number
   isActive?: boolean
   onClick?: () => void
 }) {
   return (
     <div
+      key={id}
       className={cn(
         "p-4 rounded-md cursor-pointer transition-colors",
         "hover:bg-muted/50",
-        isActive && "bg-muted/40 font-medium"
+        isActive && "bg-keymuted/40 font-medium"
       )}
       onClick={onClick}
     >

@@ -1,27 +1,3 @@
-//import * as React from "react";
-//import { Textarea } from "@/components/ui/textarea";
-//import { cn } from "@/lib/utils";
-//
-//interface ChatInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement>{}
-//
-//const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(
-//  ({ className, ...props }, ref) => (
-//    <Textarea
-//      autoComplete="off"
-//      ref={ref}
-//      name="message"
-//      className={cn(
-//        "max-h-12 px-4 py-3 bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full rounded-md flex items-center h-16 resize-none",
-//        className,
-//      )}
-//      {...props}
-//    />
-//  ),
-//);
-//ChatInput.displayName = "ChatInput";
-//
-//export { ChatInput };
-
 import * as React from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -41,8 +17,21 @@ export function ChatInput({
   isLoading,
   stop,
 }: ChatInputProps) {
+  const formRef = React.useRef<HTMLFormElement>(null);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      formRef.current?.requestSubmit();
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-end w-full">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit}
+      className="flex gap-2 items-end w-full"
+    >
       <Textarea
         className={cn(
           "flex-1 min-h-[50px] resize-none px-3 py-2 text-sm border rounded-md",
@@ -50,6 +39,7 @@ export function ChatInput({
         )}
         value={input}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         placeholder="Type a message..."
         rows={2}
       />
@@ -72,3 +62,4 @@ export function ChatInput({
     </form>
   );
 }
+

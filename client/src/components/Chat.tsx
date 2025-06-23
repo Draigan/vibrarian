@@ -82,7 +82,10 @@ export function Chat() {
               key={msg.id}
               variant={msg.role === "user" ? "sent" : "received"}
             >
-              <ChatBubbleAvatar fallback={msg.role === "user" ? "U" : "A"} />
+              <ChatBubbleAvatar src={msg.role === "user"
+                ? "/images/user-avatar.png"
+                : "vibrarian.jpg"} 
+                fallback={msg.role === "user" ? "U" : "A"} />
 
               <ChatBubbleMessage variant={msg.role === "user" ? "sent" : "received"}>
                 {msg.content}

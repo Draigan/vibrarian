@@ -2,7 +2,6 @@ import LayoutSkeleton from '@/components/layout/LayoutSkeleton';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 // Define the shape of our auth context state
 interface AuthContextType {
   user: { email: string } | null;
