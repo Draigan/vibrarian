@@ -4,7 +4,7 @@ import { insertMessage } from "../db/chat.js";
 type QueueItem = {
   token: string;
   sessionId: string;
-  sender: "user" | "assistant";
+  role: "user" | "assistant";
   content: string;
 };
 
@@ -21,9 +21,9 @@ async function processQueue() {
   if (processing || queue.length === 0) return;
 
   processing = true;
-  const { token, sessionId, sender, content } = queue.shift()!;
+  const { token, sessionId, role, content } = queue.shift()!;
   try {
-    await insertMessage(token, sessionId, sender, content);
+    await insertMessage(token, sessionId, role, content);
   } catch (err) {
     console.error("❌ Failed to insert message:", err);
   } finally {

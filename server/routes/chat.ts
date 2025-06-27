@@ -16,7 +16,7 @@ router.post("/chat", requireAuth, async (req, res) => {
     const sb_token = req.cookies.sb_token;
     const userMessage = message?.content || "";
     try {
-      enqueueMessage({ token: sb_token, sessionId, sender: "user", content: userMessage });
+      enqueueMessage({ token: sb_token, sessionId, role: "user", content: userMessage });
     } catch (err) {
       console.error("❌ Failed to insert user message:", userMessage);
       console.error(err);
@@ -40,7 +40,7 @@ router.post("/chat", requireAuth, async (req, res) => {
 
 
     try {
-      enqueueMessage({ token: sb_token, sessionId, sender: "assistant", content: reply });
+      enqueueMessage({ token: sb_token, sessionId, role: "assistant", content: reply });
     } catch (err) {
       console.error("❌ Failed to insert assistant message:", userMessage);
       console.error(err);

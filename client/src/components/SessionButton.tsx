@@ -1,14 +1,14 @@
 import { cn } from "@/lib/utils" // Optional, or use plain className
 
 export function SessionButton({
-  id = 0,
+  id = "",
   title = "Untitled Session",
   timestamp = "now",
   messageCount = 0,
   isActive = false,
   onClick,
 }: {
-  id: number
+  id: string
   title?: string
   timestamp?: string
   messageCount?: number

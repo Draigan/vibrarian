@@ -1,6 +1,7 @@
+// routes/chatSession.ts
 import express from "express";
 import { requireAuth } from "../middleware/authMiddleWare.js";
-import { supabase } from "../db/supabase.js"; // service-level client
+import { supabase } from "../db/supabase.js"; 
 
 const router = express.Router();
 
@@ -20,6 +21,23 @@ router.get("/chat-session", requireAuth, async (req, res) => {
   }
 
   return res.json({ sessions: data });
+});
+
+router.get("/chat-session/:id/messages", requireAuth, async (req, res) => {
+  const sessionId = req.params.id;
+
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .select("*")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("❌ Failed to fetch messages:", error);
+    return res.status(500).json({ error: "Could not fetch messages" });
+  }
+
+  return res.json({ messages: data });
 });
 
 export default router;

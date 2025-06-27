@@ -3,7 +3,7 @@ import { createUserClient } from "./supabase.js";
 export async function insertMessage(
   sb_token: string,
   sessionId: string,
-  sender: "user" | "assistant",
+  role: "user" | "assistant",
   content: string
 ) {
   const supabase = createUserClient(sb_token);
@@ -33,7 +33,7 @@ export async function insertMessage(
   // Step 3: Insert the message
   const { error: messageError } = await supabase.from("chat_messages").insert({
     session_id: sessionId,
-    sender,
+    role,
     content,
   });
 

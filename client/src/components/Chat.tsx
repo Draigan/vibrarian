@@ -5,95 +5,106 @@ import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { Button } from "./ui/button";
 import ChatHistory from "./ChatHistory";
 import { useChatSession } from "@/hooks/useChatSession";
+import { useChatMessages } from "@/hooks/useChatMessages";
+import { useSendMessage } from "@/hooks/useSendMessage";
+import { TriangleAlert } from "lucide-react";
 
-interface Message {
+type Message = {
   id: string;
   role: "user" | "assistant";
+  sender: "user" | "assistant";
   content: string;
-}
+  created_at: string;
+  status?: "pending" | "failed" | "sent";
+};
 
 export function Chat() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const { sessionId } = useChatSession();
+  const { sessions, sessionId, setSessionId, loadSessions, loading } = useChatSession();
+  const { mutate: sendMessage, status, stop } = useSendMessage(sessionId);
+  const assistantIsTyping = status === "pending";
+  const { data: messages = [] } = useChatMessages(sessionId);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: input,
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    const lastMessage = updatedMessages[updatedMessages.length - 1];
-    setMessages(updatedMessages);
+    sendMessage(input);
     setInput("");
-    setIsLoading(true);
+  };
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          message: { role: lastMessage.role, content: lastMessage.content },
-        }),
-      });
-
-      const data = await res.json();
-
-      const botMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: data.content || "(No response)",
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (err) {
-      console.error("Error sending message:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRetry = (msg: Message) => {
+    sendMessage(msg.content);
+    // Optionally, remove the failed status from this message in the cache after resending
   };
 
   return (
     <div className="flex flex-col h-full w-full">
       <div className="flex justify-between px-4 py-2 border-b">
-
-        <ChatHistory />
-        <div>
-          Session: {sessionId}
-        </div>
+        <ChatHistory
+          sessions={sessions}
+          sessionId={sessionId}
+          setSessionId={setSessionId}
+          loadSessions={loadSessions}
+          loading={loading}
+        />
+        <div>Session: {sessionId}</div>
         <Button
           variant="outline"
-          className="hover:!bg-primary hover:text-primary-foreground border-primary" >
+          onClick={() => {
+            setSessionId(null);
+            loadSessions();
+          }}
+          className="hover:!bg-primary hover:text-primary-foreground border-primary"
+        >
           + New Chat
         </Button>
       </div>
+
       <div className="flex-1 overflow-y-auto">
         <ChatMessageList>
-          {messages.map((msg) => (
+          {messages.map((msg: Message) => (
             <ChatBubble
               key={msg.id}
               variant={msg.role === "user" ? "sent" : "received"}
             >
-              <ChatBubbleAvatar src={msg.role === "user"
-                ? "/images/user-avatar.png"
-                : "vibrarian.jpg"} 
-                fallback={msg.role === "user" ? "U" : "A"} />
-
-              <ChatBubbleMessage variant={msg.role === "user" ? "sent" : "received"}>
+              <ChatBubbleAvatar
+                src={msg.role === "user" ? "/images/user-avatar.png" : "vibrarian.jpg"}
+                fallback={msg.role === "user" ? "U" : "A"}
+              />
+              <ChatBubbleMessage variant={msg.sender === "user" ? "sent" : "received"}>
                 {msg.content}
-                <ChatBubbleTimestamp timestamp={new Date().toLocaleTimeString()} />
+                <ChatBubbleTimestamp timestamp={new Date(msg.created_at).toLocaleTimeString()} />
+                {/* Error UI */}
+                {msg.status === "failed" && (
+                  <span className="ml-2 flex items-center gap-1 text-red-500 text-xs">
+                    <TriangleAlert className="w-4 h-4" />
+                    Failed to send
+                    <button
+                      className="ml-1 underline"
+                      onClick={() => handleRetry(msg)}
+                      title="Retry"
+                    >
+                      Retry
+                    </button>
+                  </span>
+                )}
               </ChatBubbleMessage>
-
             </ChatBubble>
           ))}
+
+          {/* Assistant loading/typing bubble */}
+          {assistantIsTyping && (
+            <ChatBubble key="assistant-typing" variant="received">
+              <ChatBubbleAvatar src="vibrarian.jpg" fallback="A" />
+              <ChatBubbleMessage variant="received">
+                <span className="flex items-center gap-2">
+                  <span className="animate-bounce">...</span>
+                </span>
+              </ChatBubbleMessage>
+            </ChatBubble>
+          )}
         </ChatMessageList>
       </div>
 
@@ -102,10 +113,11 @@ export function Chat() {
           input={input}
           handleInputChange={(e) => setInput(e.target.value)}
           handleSubmit={handleSubmit}
-          isLoading={isLoading}
-          stop={() => { }}
+          isLoading={assistantIsTyping}
+          stop={stop}
         />
       </div>
     </div>
   );
 }
+

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { ArrowUp } from "lucide-react";
 
 interface ChatInputProps {
   input: string;
@@ -35,7 +36,7 @@ export function ChatInput({
       <Textarea
         className={cn(
           "flex-1 min-h-[50px] resize-none px-3 py-2 text-sm border rounded-md",
-          isLoading && "opacity-50"
+          isLoading && "opacity-10"
         )}
         value={input}
         onChange={handleInputChange}
@@ -43,22 +44,15 @@ export function ChatInput({
         placeholder="Type a message..."
         rows={2}
       />
+
       <button
         type="submit"
-        disabled={isLoading}
-        className="bg-blue-600 text-white px-4 py-2 rounded-md"
+        disabled={isLoading || input.trim().length === 0}
+        className={cn("bg-primary text-black px-2 py-2 rounded-full", isLoading || input.trim().length === 0 && "opacity-50")}
+        aria-label="Send"
       >
-        {isLoading ? "..." : "Send"}
+        <ArrowUp className="w-5 h-5" />
       </button>
-      {isLoading && (
-        <button
-          type="button"
-          onClick={stop}
-          className="text-sm text-red-500 ml-2"
-        >
-          Stop
-        </button>
-      )}
     </form>
   );
 }

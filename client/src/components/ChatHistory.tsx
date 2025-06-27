@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -7,21 +8,39 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "./ui/button";
 import { SessionButton } from "./SessionButton";
-import { useChatSession } from "@/hooks/useChatSession";
 import { LoadingSpinner } from "./ui/loading-spinner";
 
-export default function ChatHistory() {
-  const { sessions, loadSessions, loading } = useChatSession();
+type SessionType = {
+  id: string;
+  title: string;
+  created_at: string;
+};
+
+type Props = {
+  sessions: SessionType[];
+  sessionId: string | null;
+  setSessionId: (id:string) => void;
+  loadSessions: () => void;
+  loading: boolean;
+}
+
+export default function ChatHistory({ sessions, sessionId, setSessionId, loadSessions, loading }: Props) {
+  const [open, setOpen] = useState(false);
+
+  function handleSessionChange(id: string) {
+    setSessionId(id);
+    setOpen(false);
+  }
 
   return (
-    <Sheet onOpenChange={(open) => {
-      if (open) loadSessions();
+    <Sheet open={open} onOpenChange={(val) => {
+      setOpen(val);
+      if (val) loadSessions();
     }}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
-          className="hover:!bg-primary hover:text-primary-foreground border-primary"
-        >
+          className="hover:!bg-primary hover:text-primary-foreground border-primary" >
           View Chat History
         </Button>
       </SheetTrigger>
@@ -37,16 +56,17 @@ export default function ChatHistory() {
               <LoadingSpinner />
             </div>
           ) : (
-            sessions.map((item) => {
+            sessions.map((item: SessionType) => {
               const formatted = new Date(item.created_at).toLocaleString();
               return (
                 <SessionButton
                   key={item.id}
+                  id={item.id}
                   title={item.title}
                   timestamp={formatted}
                   messageCount={5}
-                  isActive={false}
-                  onClick={() => console.log("Selected session")}
+                  isActive={item.id === sessionId}
+                  onClick={() => handleSessionChange(item.id)}
                 />
               );
             })
@@ -56,4 +76,3 @@ export default function ChatHistory() {
     </Sheet>
   );
 }
-
