@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       // If login was successful, fetch the user info (using the cookie set by backend)
       const data = await res.json();
-      console.log("Login response:", data); // 🔍 Check this in the browser console
+      console.log("Login response:", data); 
       console.log("User extracted:", data.user);
       // (Alternatively, call fetchCurrentUser() again if the login endpoint doesn't return user data)
       setUser(data.user);

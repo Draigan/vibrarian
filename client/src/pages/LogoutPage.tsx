@@ -1,19 +1,17 @@
-import { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function LogoutPage() {
-  const { logout } = useAuth();
   const navigate = useNavigate();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const doLogout = async () => {
-      await logout();
-      // Redirect after 3 seconds
-      setTimeout(() => navigate("/login"), 5000);
+      timeoutRef.current = setTimeout(() => navigate("/"), 5000);
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-    doLogout();
-  }, [logout, navigate]);
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen text-center space-y-4">
@@ -22,3 +20,4 @@ export default function LogoutPage() {
     </div>
   );
 }
+

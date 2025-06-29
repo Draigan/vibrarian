@@ -3,12 +3,10 @@ import { createContext, useContext, useState } from "react";
 
 type UserSettings = {
   theme: "light" | "dark";
-  currentSessionId: string | null;
 };
 
 const defaultSettings: UserSettings = {
   theme: "dark",
-  currentSessionId: null,
 };
 
 const UserSettingsContext = createContext<{

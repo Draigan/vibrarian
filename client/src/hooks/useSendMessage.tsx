@@ -15,7 +15,7 @@ export function useSendMessage(sessionId: string | null) {
 
   const mutation = useMutation({
     mutationFn: async (message: string) => {
-      abortControllerRef.current = new AbortController(); // <-- fix is here!
+      abortControllerRef.current = new AbortController();
       const res = await fetch(`${BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
