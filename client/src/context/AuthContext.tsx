@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Assume signup also logs them in (as your backend currently does)
       setUser(data.user);
-      navigate("/chat"); // or any other redirect
+      navigate("/"); // or any other redirect
       return { success: true, message: "Signup successful!" };
     } catch (err) {
       return { success: false, message: "Unexpected error occurred." };

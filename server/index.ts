@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js"; 
 import chatRoutes from "./routes/chat.js";
 import chatSessionRouter from "./routes/chatSession.js";
+import transcriptRouter from "./routes/transcripts.js"
 
 const app = express();
 const port = 3000;
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use(cookieParser()); 
 
 app.use("/api", chatRoutes);
+app.use("/api", transcriptRouter);
 app.use("/api", chatSessionRouter);
 app.use("/api", authRouter);
 

@@ -1,0 +1,12 @@
+chatmessage -> supabase 
+
+name: session 1
+index -> chatmessagebelongs to session 1
+index is its own database 
+contains all chat messages for session 1
+
+
+fetch all messages for session 1
+
+we dont look to the entire supabase message table
+we look to session 1 index

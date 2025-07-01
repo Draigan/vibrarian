@@ -35,7 +35,7 @@ export function Chat() {
 
   return (
     <div className="flex w-full h-full justify-center">
-    <div className="flex flex-col h-full w-full border-1 max-w-[1600px]">
+    <div className="flex flex-col h-full w-full max-w-[1200px]">
       <ChatHeader
         sessions={sessions}
         sessionId={sessionId}

@@ -3,7 +3,7 @@ import { ChatBubbles } from "./ChatBubbles";
 
 export function ChatMain({ messages, assistantIsTyping, handleRetry }: any) {
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 bg-[var(--card-foreground)] bg-card overflow-y-auto">
       <ChatMessageList>
         <ChatBubbles
           messages={messages}

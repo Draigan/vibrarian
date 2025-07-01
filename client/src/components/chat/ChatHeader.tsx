@@ -9,7 +9,9 @@ export function ChatHeader({
   loading,
 }: any) {
   return (
-    <div className="flex justify-between px-4 py-2 border-b">
+<>
+    <div className="flex bg-accent border-1  rounded-t-2xl justify-between px-4 py-2">
+
       <ChatHistory
         sessions={sessions}
         sessionId={sessionId}
@@ -23,10 +25,11 @@ export function ChatHeader({
           setSessionId(null);
           loadSessions();
         }}
-        className="hover:!bg-primary hover:text-primary-foreground border-primary"
+        className="hover:!bg-accent border-primary"
       >
         + New Chat
       </Button>
     </div>
+    </>
   );
 }

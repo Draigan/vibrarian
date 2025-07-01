@@ -40,12 +40,12 @@ export default function ChatHistory({ sessions, sessionId, setSessionId, loadSes
       <SheetTrigger asChild>
         <Button
           variant="outline"
-          className="hover:!bg-primary hover:text-primary-foreground border-primary" >
+          className="hover:!bg-accent border-primary" >
           View Chat History
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="w-[400px] sm:w-[540px]">
+      <SheetContent side="left" className="w-[400px] sm:w-[300px]">
         <SheetHeader>
           <SheetTitle>Chat History</SheetTitle>
         </SheetHeader>

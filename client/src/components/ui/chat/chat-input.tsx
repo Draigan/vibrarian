@@ -34,11 +34,11 @@ export function ChatInput({
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-  className="flex gap-3 items-center w-full p-3 bg-card rounded-b-xl"
+  className="flex gap-3 items-center w-full p-3 rounded-b-xl"
     >
       <Textarea
         className={cn(
-          "flex-1 min-h-[48px] resize-none px-3 py-2 text-sm border rounded-md bg-background shadow-sm"
+          "flex-1 min-h-[48px] resize-none px-3 py-2 text-sm rounded-md shadow-sm"
         )}
         value={input}
         onChange={handleInputChange}
