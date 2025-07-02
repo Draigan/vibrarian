@@ -17,13 +17,28 @@ router.get("/session", async (req, res) => {
     const supabaseUser = createUserClient(sb_token);
     const { data, error } = await supabaseUser.auth.getUser();
 
-    if (error || !data?.user) {
-      return res.status(200).json({ logout: true, error: error });
+    // Only log out for explicit auth errors (not fetch/network errors)
+    if (error) {
+      // AuthApiError (real auth error) triggers logout, but AuthRetryableFetchError does NOT
+      if (
+        error.name === "AuthApiError" ||
+        error.status === 401 ||
+        error.status === 403
+      ) {
+        return res.status(200).json({ logout: true, error: error });
+      } else {
+        // Network/undici/fetch error: don't log out!
+        return res.status(503).json({ error: error, logout: false });
+      }
     }
 
-    return res.json({ user: data.user, logout: false, error: error });
+    if (!data?.user) {
+      return res.status(200).json({ logout: true, error: "User not found" });
+    }
+
+    return res.json({ user: data.user, logout: false, error: null });
   } catch (e) {
-    // If DB or auth is down, don't logout—just notify frontend
+    // DB/network/unknown error: do NOT log out!
     return res.status(503).json({ error: "Server error", logout: false });
   }
 });

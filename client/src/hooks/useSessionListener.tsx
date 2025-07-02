@@ -13,18 +13,25 @@ export function useSessionListener() {
         const res = await fetch(`${BASE_URL}/api/session`, {
           credentials: "include",
         });
+
+        // Check HTTP status
+        if (res.status === 503) {
+          console.warn("🔐 Server/network error (503) during session check, not logging out");
+          return; // Don't log out—just notify or retry later
+        }
+
         const data = await res.json();
+
         if (data.logout) {
-          console.log("Logging out");
-        console.error(data.error)
+          console.log("Logging out (from sessionListener)", data.error);
           logout();
         } else {
           console.log("Session is valid");
         }
       } catch (err) {
-
-        console.error(err)
-        console.warn("🔐 Error validating session", err);
+        // This catch block is only hit if the fetch itself fails (network down, etc)
+        console.error("🔐 Error validating session (fetch failed)", err);
+        // Optionally: show a warning or retry logic
       }
     };
 

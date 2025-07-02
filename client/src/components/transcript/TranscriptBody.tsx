@@ -1,6 +1,6 @@
 import { useTranscriptBlocks } from "@/hooks/useTranscriptBlocks";
 import TranscriptBlock from "./TranscriptBlock";
-import { FixedSizeList as List } from "react-window";
+import { Virtuoso } from "react-virtuoso";
 
 export default function TranscriptBody({ transcriptId }: { transcriptId: string }) {
   const { data: blocks, isLoading, error } = useTranscriptBlocks(transcriptId);
@@ -37,25 +37,21 @@ export default function TranscriptBody({ transcriptId }: { transcriptId: string 
     );
   }
 
-  // Height and block height (adjust as needed)
+  // Height of the whole scroll area
   const CONTAINER_HEIGHT = 800; // px
-  const BLOCK_HEIGHT = 120; // px
 
   return (
     <div className="flex-1 h-full overflow-auto">
-      <List
-        height={CONTAINER_HEIGHT}
-        itemCount={blocks.length}
-        itemSize={BLOCK_HEIGHT}
-        width="100%"
-      >
-        {({ index, style }) => (
-          <div style={style} key={blocks[index].id}>
+      <Virtuoso
+        style={{ height: CONTAINER_HEIGHT, width: "100%" }}
+        totalCount={blocks.length}
+        itemContent={index => (
+          <div key={blocks[index].id}>
             <TranscriptBlock block={blocks[index]} />
           </div>
         )}
-      </List>
+        className="p-4"
+      />
     </div>
   );
 }
-
