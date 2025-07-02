@@ -10,7 +10,7 @@ export function ChatHeader({
 }: any) {
   return (
 <>
-    <div className="flex bg-accent border-1  rounded-t-2xl justify-between px-4 py-2">
+    <div className="flex bg-accent border-1 rounded-t-2xl justify-between px-4 py-2">
 
       <ChatHistory
         sessions={sessions}
@@ -19,10 +19,13 @@ export function ChatHeader({
         loadSessions={loadSessions}
         loading={loading}
       />
+        <div>
+          {sessionId}
+        </div>
       <Button
         variant="outline"
         onClick={() => {
-          setSessionId(null);
+          setSessionId("new");
           loadSessions();
         }}
         className="hover:!bg-accent border-primary"

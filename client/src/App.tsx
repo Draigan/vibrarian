@@ -6,10 +6,10 @@ import ProtectedRoute from "./ProtectedRoute";
 import LogoutPage from "./pages/LogoutPage";
 import WelcomePage from "./pages/WelcomePage";
 import TranscriptsPage from "./pages/TranscriptsPage";
-//import { useSessionListener } from "./hooks/useSessionListener";
+import { useSessionListener } from "./hooks/useSessionListener";
 
 export default function App() {
-  //useSessionListener(); // Needs fixing
+  useSessionListener(); // Needs fixing
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />

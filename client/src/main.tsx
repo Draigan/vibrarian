@@ -7,11 +7,13 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AppLayout } from './components/layout/AppLayout.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { UserSettingsProvider } from './context/UserSettingsContext.tsx';
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <UserSettingsProvider>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
@@ -23,5 +25,6 @@ createRoot(document.getElementById('root')!).render(
         </BrowserRouter>
       </QueryClientProvider>
     </ThemeProvider>
+    </UserSettingsProvider>
   </StrictMode>
 )

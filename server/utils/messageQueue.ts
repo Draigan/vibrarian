@@ -12,7 +12,7 @@ const queue: QueueItem[] = [];
 
 let processing = false;
 
-export function enqueueMessage(item: QueueItem) {
+export function storeMessage(item: QueueItem) {
   queue.push(item);
   processQueue();
 }

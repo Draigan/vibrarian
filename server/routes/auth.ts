@@ -8,17 +8,24 @@ const router = express.Router();
 router.use(cookieParser());
 
 router.get("/session", async (req, res) => {
-  const token = req.cookies.sb_token;
-  if (!token) return res.status(401).json({ error: "Not authenticated" });
-
-  const supabaseUser = createUserClient(token);
-  const { data, error } = await supabaseUser.auth.getUser();
-
-  if (error || !data?.user) {
-    return res.status(401).json({ error: "Invalid token" });
+  const sb_token = req.cookies.sb_token;
+  if (!sb_token) {
+    return res.status(200).json({ logout: true, error: "Not authenticated" });
   }
 
-  res.json({ user: data.user });
+  try {
+    const supabaseUser = createUserClient(sb_token);
+    const { data, error } = await supabaseUser.auth.getUser();
+
+    if (error || !data?.user) {
+      return res.status(200).json({ logout: true, error: error });
+    }
+
+    return res.json({ user: data.user, logout: false, error: error });
+  } catch (e) {
+    // If DB or auth is down, don't logout—just notify frontend
+    return res.status(503).json({ error: "Server error", logout: false });
+  }
 });
 
 router.post("/login", async (req, res) => {

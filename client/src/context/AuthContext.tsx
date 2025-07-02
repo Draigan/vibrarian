@@ -1,6 +1,8 @@
 import LayoutSkeleton from '@/components/layout/LayoutSkeleton';
+import { useChatSession } from '@/hooks/useChatSession';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUserSettings } from './UserSettingsContext';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Define the shape of our auth context state
 interface AuthContextType {
@@ -20,33 +22,34 @@ const AuthContext = createContext<AuthContextType>({
 
 // AuthProvider component to manage and provide auth state
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { settings, updateSettings, clearSettings } = useUserSettings();
+  console.log("settings", settings)
   const [user, setUser] = useState<{ email: string } | null>(null);
   const navigate = useNavigate();  // for optional redirects after login/logout
   const [loading, setLoading] = useState<boolean>(true);
 
   // On mount, check if user is already logged in (by calling backend)
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/session`, {
-          method: 'GET',
-          credentials: 'include'  // include cookies in request
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          setUser(null);
+useEffect(() => {
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/session`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.logout) {
+          logout();
         }
-      } catch (err) {
-        console.error('Error checking auth status:', err);
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchCurrentUser();
-  }, []);
+    } catch (err) {
+      console.error('Error checking auth status:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchCurrentUser();
+}, []);
 
   // Sign up
   const signup = async (email: string, password: string) => {
@@ -66,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Assume signup also logs them in (as your backend currently does)
       setUser(data.user);
+          updateSettings({userName: data.user.email});
       navigate("/"); // or any other redirect
       return { success: true, message: "Signup successful!" };
     } catch (err) {
@@ -87,10 +91,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       // If login was successful, fetch the user info (using the cookie set by backend)
       const data = await res.json();
-      console.log("Login response:", data); 
+      console.log("Login response:", data);
       console.log("User extracted:", data.user);
       // (Alternatively, call fetchCurrentUser() again if the login endpoint doesn't return user data)
-      setUser(data.user);
+          updateSettings({userName: data.user.email});
+
       // Redirect to a protected page (optional, e.g. to /chat)
       navigate('/');
     } catch (err) {
@@ -109,9 +114,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (err) {
       console.error('Logout error:', err);
+      clearSettings();
     } finally {
       // Clear user from context on logout
-      setUser(null);
+      clearSettings();
     }
   };
 

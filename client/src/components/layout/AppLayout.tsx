@@ -14,9 +14,12 @@ import {
   LogOut,
   User as UserIcon,
 } from "lucide-react";
+import { useUserSettings } from "@/context/UserSettingsContext";
 
 export function AppLayout({ children }) {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
+
+  const {settings} = useUserSettings()
   const navigate = useNavigate();
 
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
@@ -30,8 +33,8 @@ export function AppLayout({ children }) {
 
   const navLinks = [
     { to: "/", label: "Home", icon: <Home size={20} />, show: true },
-    { to: "/chat", label: "Chat", icon: <MessageCircle size={20} />, show: !!user },
-    { to: "/transcripts", label: "Transcripts", icon: <FileText size={20} />, show: !!user},
+    { to: "/chat", label: "Chat", icon: <MessageCircle size={20} />, show: !!settings.userName },
+    { to: "/transcripts", label: "Transcripts", icon: <FileText size={20} />, show: !!settings.userName},
   ];
 
   return (
@@ -97,7 +100,7 @@ export function AppLayout({ children }) {
 
         {/* Logout/Sign In link */}
         <div className="w-full flex flex-col">
-          {user ? (
+          {settings.userName ? (
             <SidebarNavButton
               as="button"
               onClick={handleLogout}

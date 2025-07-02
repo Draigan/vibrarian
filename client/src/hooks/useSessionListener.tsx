@@ -11,15 +11,20 @@ export function useSessionListener() {
     const checkSession = async () => {
       try {
         const res = await fetch(`${BASE_URL}/api/session`, {
-          credentials: "include", 
+          credentials: "include",
         });
-        if (!res.ok) throw new Error("No session");
         const data = await res.json();
-        console.log("✅ Session still valid:", data.user);
-      } catch {
-        console.warn("🔐 Session expired or invalid");
-        logout();
+        if (data.logout) {
+          console.log("Logging out");
+        console.error(data.error)
+          logout();
+        } else {
+          console.log("Session is valid");
+        }
+      } catch (err) {
 
+        console.error(err)
+        console.warn("🔐 Error validating session", err);
       }
     };
 

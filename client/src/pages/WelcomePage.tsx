@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { useUserSettings } from '@/context/UserSettingsContext';
 import { useNavigate } from 'react-router-dom';
 
 const WelcomePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {settings} = useUserSettings();
 
   return (
     <div className="flex items-center justify-center h-full">
@@ -24,7 +25,7 @@ const WelcomePage = () => {
             Your fractally context-aware transcript-querying companion.
           </p>
           <div className="flex justify-center gap-4">
-            {user ? (
+            {settings.userName ? (
               <>
                 <Button onClick={() => navigate('/chat')} size="lg">
                   Start Chatting

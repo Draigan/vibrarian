@@ -1,42 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from '@/context/AuthContext';
+import { useUserSettings } from "@/context/UserSettingsContext";
 
-const SESSION_KEY = "currentSessionId";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-export function useChatSession() {
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const {user} = useAuth();
-  useEffect(() => {
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (stored) {
-      setSessionId(stored);
-    } else {
-      selectSession(null);
-    }
-  }, []);
 
-  const selectSession = (id: string | null) => {
-    if (id == null){
+export function useChatSession() {
+  const { settings, updateSettings } = useUserSettings();
+  const sessionId = settings.chatSession;
+
+  // Ensure sessionId is set on mount
+  useEffect(() => {
+    if (!sessionId) {
+      // If no session, create a new one and store in settings
+      updateSettings({ chatSession: uuidv4() });
+    }
+    // eslint-disable-next-line
+  }, []); // run only on mount
+
+  // Change session (existing or new)
+  const selectSession = (id: string | "new") => {
+    if (id === "new") {
       id = uuidv4();
     }
-    localStorage.setItem(SESSION_KEY, id);
-    setSessionId(id);
+    updateSettings({ chatSession: id });
   };
 
-  const clearSession = () => {
-    localStorage.removeItem(SESSION_KEY);
-    setSessionId(null);
-  };
-
+  // Fetch sessions for the current user
   const {
     data: sessions,
     error,
     isLoading,
-    refetch: loadSessions, 
+    refetch: loadSessions,
   } = useQuery({
-    queryKey: ["chatSessions", user?.email],
+    queryKey: ["chatSessions", settings.userName],
     queryFn: async () => {
       const res = await fetch(`${BASE_URL}/api/chat-session`, {
         credentials: "include",
@@ -45,16 +42,16 @@ export function useChatSession() {
       const data = await res.json();
       return data.sessions;
     },
-    enabled: true,
+    enabled: !!settings.userName, // Only run if userName exists
   });
 
   return {
-    sessionId,
+    sessionId: settings.chatSession,
     setSessionId: selectSession,
-    clearSession,
     sessions: sessions || [],
     loading: isLoading,
-    error: error instanceof Error ? error.message : null,
-    loadSessions, 
+    error: error instanceof Error ? error.message : String(error),
+    loadSessions,
   };
 }
+

@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useRef } from "react";
+import { useUserSettings } from "@/context/UserSettingsContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function useSendMessage(sessionId: string | null) {
   const { user } = useAuth();
+  const {settings} = useUserSettings();
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -32,10 +34,10 @@ export function useSendMessage(sessionId: string | null) {
     },
 
     onMutate: async (message) => {
-      if (!sessionId || !user?.email) return;
+      if (!sessionId || !settings.userName) return;
 
-      await queryClient.cancelQueries(["chatMessages", sessionId, user.email]);
-      const previous = queryClient.getQueryData(["chatMessages", sessionId, user.email]);
+      await queryClient.cancelQueries(["chatMessages", sessionId, settings.userName]);
+      const previous = queryClient.getQueryData(["chatMessages", sessionId, settings.userName]);
 
       const optimisticUserMessage = {
         id: crypto.randomUUID(),
@@ -45,7 +47,7 @@ export function useSendMessage(sessionId: string | null) {
         created_at: new Date().toISOString(),
       };
 
-      queryClient.setQueryData(["chatMessages", sessionId, user.email], (old: any[] = []) => [
+      queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
         ...old,
         optimisticUserMessage,
       ]);
@@ -54,7 +56,7 @@ export function useSendMessage(sessionId: string | null) {
     },
 
     onSuccess: (data, _input, _context) => {
-      if (!sessionId || !user?.email) return;
+      if (!sessionId || !settings.userName) return;
 
       const assistantMessage = {
         id: crypto.randomUUID(),
@@ -64,20 +66,20 @@ export function useSendMessage(sessionId: string | null) {
         created_at: new Date().toISOString(),
       };
 
-      queryClient.setQueryData(["chatMessages", sessionId, user.email], (old: any[] = []) => [
+      queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
         ...old,
         assistantMessage,
       ]);
     },
 
     onError: (err, _input, context) => {
-      if (!sessionId || !user?.email) return;
+      if (!sessionId || !settings.userName) return;
       if (err?.name === "AbortError") {
         // Optionally handle as "cancelled" (show nothing, or a special UI)
         return;
       }
       queryClient.setQueryData(
-        ["chatMessages", sessionId, user.email],
+        ["chatMessages", sessionId, settings.userName],
         (old: any[] = []) =>
           old.map((msg, i, arr) =>
             i === arr.length - 1 && msg.role === "user" && !msg.status
