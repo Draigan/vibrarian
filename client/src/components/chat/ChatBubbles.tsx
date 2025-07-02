@@ -9,11 +9,16 @@ export function ChatBubbles({ messages, assistantIsTyping, handleRetry }: any) {
           key={msg.id}
           variant={msg.role === "user" ? "sent" : "received"}
         >
-          <ChatBubbleAvatar
-            src={msg.role === "user" ? "/images/user-avatar.png" : "vibrarian.jpg"}
-            fallback={msg.role === "user" ? "U" : "A"}
-          />
-          <ChatBubbleMessage variant={msg.sender === "user" ? "sent" : "received"}>
+          {/* Avatar only for assistant/AI messages */}
+          {msg.role !== "user" && (
+            <ChatBubbleAvatar
+              src="vibrarian.jpg"
+              fallback="A"
+              className="self-start"
+            />
+          )}
+
+          <ChatBubbleMessage variant={msg.role === "user" ? "sent" : "received"}>
             {msg.content}
             <ChatBubbleTimestamp timestamp={new Date(msg.created_at).toLocaleTimeString()} />
             {/* Error UI */}
@@ -33,10 +38,11 @@ export function ChatBubbles({ messages, assistantIsTyping, handleRetry }: any) {
           </ChatBubbleMessage>
         </ChatBubble>
       ))}
+
       {/* Assistant loading/typing bubble */}
       {assistantIsTyping && (
         <ChatBubble key="assistant-typing" variant="received">
-          <ChatBubbleAvatar src="vibrarian.jpg" fallback="A" />
+          <ChatBubbleAvatar src="vibrarian.jpg" fallback="A" className="mr-2" />
           <ChatBubbleMessage variant="received">
             <span className="flex items-center gap-2">
               <span className="animate-bounce">...</span>
@@ -47,3 +53,4 @@ export function ChatBubbles({ messages, assistantIsTyping, handleRetry }: any) {
     </>
   );
 }
+
