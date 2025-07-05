@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import ChatHistory from "./ChatHistory";
+import { Plus } from "lucide-react";
+
 
 export function ChatHeader({
   sessions,
@@ -10,8 +12,18 @@ export function ChatHeader({
 }: any) {
   return (
 <>
-    <div className="flex bg-accent border-1 rounded-t-2xl justify-between px-4 py-2">
+    <div className="flex justify-between w-[760px]  h-14">
 
+      <Button
+        variant="outline"
+        onClick={() => {
+          setSessionId("new");
+          loadSessions();
+        }}
+        className="hover:!bg-accent border-0"
+      >
+  <Plus className="w-4 h-4" />
+      </Button>
       <ChatHistory
         sessions={sessions}
         sessionId={sessionId}
@@ -19,19 +31,6 @@ export function ChatHeader({
         loadSessions={loadSessions}
         loading={loading}
       />
-        <div>
-          {sessionId}
-        </div>
-      <Button
-        variant="outline"
-        onClick={() => {
-          setSessionId("new");
-          loadSessions();
-        }}
-        className="hover:!bg-accent border-primary"
-      >
-        + New Chat
-      </Button>
     </div>
     </>
   );

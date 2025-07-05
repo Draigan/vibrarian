@@ -9,6 +9,7 @@ import {
 import { Button } from "../ui/button";
 import { SessionButton } from "../SessionButton";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import { History } from "lucide-react";
 
 type SessionType = {
   id: string;
@@ -40,8 +41,8 @@ export default function ChatHistory({ sessions, sessionId, setSessionId, loadSes
       <SheetTrigger asChild>
         <Button
           variant="outline"
-          className="hover:!bg-accent border-primary" >
-          View Chat History
+          className="hover:!bg-accent border-0" >
+      <History className="w-5 h-5" />
         </Button>
       </SheetTrigger>
 

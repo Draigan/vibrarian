@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/*@import "@/css/utils.css";*/
 
 @custom-variant dark (&:is(.dark *));
 
@@ -39,7 +40,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+
+
+  /*MINE HERE*/
+  --chat-size-default: 760px;
+  --chat-size-wide: 1000px;
+  --chat-size-narrow: 400px;
 }
+
 :root {
   --radius: 0.625rem;
   --background: oklch(0.88 0.007 255);              /* soft light grey */
@@ -91,6 +100,22 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+
+@layer utilities {
+  .chat-size-default {
+    max-width: var(--chat-size-default) !important;
+    width: 100% !important;
+  }
+  .chat-size-wide {
+    max-width: var(--chat-size-wide);
+    width: 100%;
+  }
+  .chat-size-narrow {
+    max-width: var(--chat-size-narrow);
+    width: 100%;
   }
 }
 

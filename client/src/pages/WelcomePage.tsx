@@ -5,16 +5,16 @@ import { useNavigate } from 'react-router-dom';
 
 const WelcomePage = () => {
   const navigate = useNavigate();
-  const {settings} = useUserSettings();
+  const { settings } = useUserSettings();
 
   return (
     <div className="flex items-center justify-center h-full">
       <div className="flex flex-col items-center justify-center h-full text-center p-4 overflow-hidden">
         <div className="animate-fade-in max-w-2xl">
           <div className="flex flex-col items-center justify-center text-center">
-            <img 
-              src="/vibrarian.jpg" 
-              alt="Vibrarian Logo" 
+            <img
+              src="/vibrarian.jpg"
+              alt="Vibrarian Logo"
               className="w-32 h-32 mb-6 rounded-full border-4 border-primary p-1 object-cover"
             />
           </div>

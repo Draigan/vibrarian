@@ -1,0 +1,27 @@
+.chat-markdown {
+color: var(--color-foreground);
+}
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
+font-size: 1.1rem;
+margin: 0.2em 0;
+font-weight: bold;
+color: var(--color-foreground);
+}
+.chat-markdown p, .chat-markdown li {
+margin: 0;
+}
+.chat-markdown ul, .chat-markdown ol {
+padding-left: 1.25em;
+margin: 0.1em 0;
+}
+.chat-markdown code {
+background: var(--color-card); /* or another bg variable */
+color: var(--color-foreground); /* for code text */
+padding: 2px 4px;
+border-radius: 4px;
+font-size: 0.95em;
+}
+.chat-markdown a {
+color: var(--color-primary);
+text-decoration: underline;
+}
