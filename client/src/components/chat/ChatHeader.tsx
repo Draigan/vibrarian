@@ -9,29 +9,32 @@ export function ChatHeader({
   setSessionId,
   loadSessions,
   loading,
+  virtuoso
 }: any) {
   return (
-<>
-    <div className="flex justify-between w-[760px]  h-14">
+    <>
+      <div className="flex justify-between w-[760px]  h-14">
 
-      <Button
-        variant="outline"
-        onClick={() => {
-          setSessionId("new");
-          loadSessions();
-        }}
-        className="hover:!bg-accent border-0"
-      >
-  <Plus className="w-4 h-4" />
-      </Button>
-      <ChatHistory
-        sessions={sessions}
-        sessionId={sessionId}
-        setSessionId={setSessionId}
-        loadSessions={loadSessions}
-        loading={loading}
-      />
-    </div>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSessionId("new");
+            loadSessions();
+          }}
+          className="hover:!bg-accent border-0"
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
+        <ChatHistory
+
+          virtuoso={virtuoso}
+          sessions={sessions}
+          sessionId={sessionId}
+          setSessionId={setSessionId}
+          loadSessions={loadSessions}
+          loading={loading}
+        />
+      </div>
     </>
   );
 }

@@ -2,22 +2,24 @@ import * as React from "react";
 import ChatTextArea from "./ChatTextArea"
 import { cn } from "@/lib/utils";
 import { ArrowUp, Square } from "lucide-react";
+import { useState } from "react";
 
 interface ChatInputProps {
-  input: string;
-  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  sendMessage: any;
   isLoading: boolean;
   stop: () => void;
 }
 export default function ChatInput({
-  input,
-  handleInputChange,
-  handleSubmit,
+  sendMessage,
   isLoading,
   stop,
 }: ChatInputProps) {
   const formRef = React.useRef<HTMLFormElement>(null);
+  const [input, setInput] = useState("");
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>)=> {
+    setInput(e.target.value);
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && isLoading) {
@@ -29,14 +31,19 @@ export default function ChatInput({
       formRef.current?.requestSubmit();
     }
   };
+  function handleOnSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (isLoading || input.trim().length === 0) return;
+    sendMessage(input);
+    setInput("");
+  }
 
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit}
-  className="flex gap-3 items-center w-full p-3 "
+      onSubmit={handleOnSubmit} 
+      className="flex gap-3 items-center w-full p-3"
     >
-
       <ChatTextArea
         value={input}
         onChange={handleInputChange}

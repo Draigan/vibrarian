@@ -7,6 +7,7 @@ import LogoutPage from "./pages/LogoutPage";
 import WelcomePage from "./pages/WelcomePage";
 import TranscriptsPage from "./pages/TranscriptsPage";
 import { useSessionListener } from "./hooks/useSessionListener";
+import Test from "./components/chat/Test";
 
 export default function App() {
   useSessionListener(); // Needs fixing
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignUpPage />} />
       <Route path="/logout" element={<LogoutPage />} />
+      <Route path="/test" element={<Test />} />
 
       {/* Protect /chat route */}
       <Route element={<ProtectedRoute />}>

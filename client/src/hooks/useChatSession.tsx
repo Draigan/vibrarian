@@ -1,3 +1,4 @@
+// Fetches all the sessions from the database
 import { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useQuery } from "@tanstack/react-query";

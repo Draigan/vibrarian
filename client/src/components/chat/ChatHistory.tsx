@@ -23,9 +23,10 @@ type Props = {
   setSessionId: (id:string) => void;
   loadSessions: () => void;
   loading: boolean;
+  virtuoso: any;
 }
 
-export default function ChatHistory({ sessions, sessionId, setSessionId, loadSessions, loading }: Props) {
+export default function ChatHistory({ sessions, sessionId, setSessionId, loadSessions, loading, virtuoso }: Props) {
   const [open, setOpen] = useState(false);
 
   function handleSessionChange(id: string) {

@@ -5,9 +5,9 @@ import { useUserSettings } from "@/context/UserSettingsContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export function useSendMessage(sessionId: string | null) {
+export function useChatActions(sessionId: string | null, appendMessages, replaceMessages, deleteMessageAt, replaceMessageAt, replaceLastPendingAssistant) {
   const { user } = useAuth();
-  const {settings} = useUserSettings();
+  const { settings } = useUserSettings();
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -39,13 +39,27 @@ export function useSendMessage(sessionId: string | null) {
       await queryClient.cancelQueries(["chatMessages", sessionId, settings.userName]);
       const previous = queryClient.getQueryData(["chatMessages", sessionId, settings.userName]);
 
+      let id = crypto.randomUUID();
       const optimisticUserMessage = {
-        id: crypto.randomUUID(),
+        id: id,
+        key: id,
         role: "user",
         content: message,
         session_id: sessionId,
         created_at: new Date().toISOString(),
       };
+
+      id = crypto.randomUUID();
+      const assistantTypingMessage = {
+        id: id,
+        key: id,
+        role: "assistant",
+        content: message,
+        session_id: sessionId,
+        created_at: new Date().toISOString(),
+        status: "pending"
+      };
+      appendMessages([optimisticUserMessage])
 
       queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
         ...old,
@@ -70,14 +84,27 @@ export function useSendMessage(sessionId: string | null) {
         ...old,
         assistantMessage,
       ]);
+      const updatedMessages =
+        queryClient.getQueryData<any[]>(["chatMessages", sessionId, settings.userName]) || [];
+      replaceMessages(updatedMessages);
     },
 
-    onError: (err, _input, context) => {
+    onError: (err, input) => {
       if (!sessionId || !settings.userName) return;
       if (err?.name === "AbortError") {
         // Optionally handle as "cancelled" (show nothing, or a special UI)
         return;
       }
+
+      const errorMessage = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: "",
+        session_id: sessionId,
+        created_at: new Date().toISOString(),
+        status: "failed"
+      };
+      replaceMessageAt(-1, { ...errorMessage });
       queryClient.setQueryData(
         ["chatMessages", sessionId, settings.userName],
         (old: any[] = []) =>

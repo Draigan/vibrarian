@@ -3,15 +3,13 @@ import ChatInput from "./ChatInput";
 interface ChatFooterProps {
   input: string;
   setInput: (val: string) => void;
-  handleSubmit: (e: React.FormEvent) => void;
+  sendMessage: any;
   assistantIsTyping: boolean;
   stop: () => void;
 }
 
 export function ChatFooter({
-  input,
-  setInput,
-  handleSubmit,
+  sendMessage,
   assistantIsTyping,
   stop,
 }: ChatFooterProps) {
@@ -24,9 +22,7 @@ export function ChatFooter({
         "
       >
         <ChatInput
-          input={input}
-          handleInputChange={(e) => setInput(e.target.value)}
-          handleSubmit={handleSubmit}
+          sendMessage={sendMessage}
           isLoading={assistantIsTyping}
           stop={stop}
         />
