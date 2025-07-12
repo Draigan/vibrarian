@@ -1,16 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useUserSettings } from "@/context/UserSettingsContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export function useChatActions(sessionId: string | null, appendMessages, replaceMessages, deleteMessageAt, replaceMessageAt, replaceLastPendingAssistant) {
+export function useChatActions(appendMessages, replaceMessages, deleteMessageAt, replaceMessageAt, replaceLastPendingAssistant, scrollLastUserMessageToTop, scrollToMessageKey) {
   const { user } = useAuth();
-  const { settings } = useUserSettings();
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
+  const { settings } = useUserSettings();
+  const [shouldDeleteLast, setShouldDeleteLast] = useState(false);
 
+  const sessionId = settings.chatSession;
   const stop = () => {
     abortControllerRef.current?.abort();
   };
@@ -59,15 +61,18 @@ export function useChatActions(sessionId: string | null, appendMessages, replace
         created_at: new Date().toISOString(),
         status: "pending"
       };
-      appendMessages([optimisticUserMessage])
+
+      appendMessages([optimisticUserMessage]);
+       appendMessages([assistantTypingMessage], -1);
+
 
       queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
-        ...old,
-        optimisticUserMessage,
-      ]);
+      ...old,
+      optimisticUserMessage,
+    ]);
 
-      return { previous };
-    },
+    return { previous };
+  },
 
     onSuccess: (data, _input, _context) => {
       if (!sessionId || !settings.userName) return;
@@ -80,13 +85,11 @@ export function useChatActions(sessionId: string | null, appendMessages, replace
         created_at: new Date().toISOString(),
       };
 
+      replaceMessageAt(-1, assistantMessage)
       queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
         ...old,
         assistantMessage,
       ]);
-      const updatedMessages =
-        queryClient.getQueryData<any[]>(["chatMessages", sessionId, settings.userName]) || [];
-      replaceMessages(updatedMessages);
     },
 
     onError: (err, input) => {
@@ -104,7 +107,9 @@ export function useChatActions(sessionId: string | null, appendMessages, replace
         created_at: new Date().toISOString(),
         status: "failed"
       };
-      replaceMessageAt(-1, { ...errorMessage });
+      //replaceMessageAt(-1, { ...errorMessage });
+
+      //deleteMessageAt(-1);
       queryClient.setQueryData(
         ["chatMessages", sessionId, settings.userName],
         (old: any[] = []) =>
@@ -121,8 +126,8 @@ export function useChatActions(sessionId: string | null, appendMessages, replace
     },
   });
 
-  return {
-    ...mutation,
-    stop,
-  };
+return {
+  ...mutation,
+  stop,
+};
 }

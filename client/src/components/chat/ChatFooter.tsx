@@ -1,8 +1,6 @@
 import ChatInput from "./ChatInput";
 
 interface ChatFooterProps {
-  input: string;
-  setInput: (val: string) => void;
   sendMessage: any;
   assistantIsTyping: boolean;
   stop: () => void;

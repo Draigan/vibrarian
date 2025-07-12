@@ -21,7 +21,6 @@ const ItemContent = ({
   data, index, context
 }) => {
   const messages = context;
-  const isLast = index === messages.length - 1;
   const isUser = data.role === "user";
   const msg = data;
   return (
@@ -35,16 +34,15 @@ const ItemContent = ({
             {!isUser && (
               <ChatBubbleAvatar
                 src="vibrarian.jpg"
-                fallback="A"
                 className="self-start"
               />
             )}
             <ChatBubbleMessage
               variant={isUser ? "sent" : "received"}
-              isLoading={msg.status === "pending"} 
+              isLoading={msg.status === "pending"}
             >
               <div className="chat-markdown">
-                {msg.content} 
+                {msg.content}
               </div>
               {msg.status === "failed" && (
                 <span className="ml-2 flex items-center gap-1 text-red-500 text-xs">
@@ -57,7 +55,7 @@ const ItemContent = ({
                   >
                     Retry
                   </button>
-                </span>  
+                </span>
               )}
             </ChatBubbleMessage>
           </ChatBubble>
@@ -67,22 +65,21 @@ const ItemContent = ({
   );
 };
 
-export default function Test({ virtuoso, messages }) {
-
+export default function Test({ virtuoso }) {
+  const messages = virtuoso.current?.data.get() || [];
   return (
     <div
       className="w-[760px]"
       style={{
         display: "flex",
-        height: "750px",
+        height: "calc(100vh - 205px)",
         flexDirection: "column",
       }}
     >
       <VirtuosoMessageListLicense licenseKey="">
         <VirtuosoMessageList<Message, null>
           ref={virtuoso}
-          context={messages}
-          style={{ flex: 1 }}
+          style={{ flex: 1, }}
           computeItemKey={({ data }) => data.key}
           ItemContent={({ data, index }) => (
             <ItemContent data={data} index={index} context={messages} />

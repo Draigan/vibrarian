@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { SessionButton } from "../SessionButton";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import { History } from "lucide-react";
+import { useChatMessages } from "@/hooks/useChatMessages";
 
 type SessionType = {
   id: string;
@@ -20,14 +21,21 @@ type SessionType = {
 type Props = {
   sessions: SessionType[];
   sessionId: string | null;
-  setSessionId: (id:string) => void;
+  setSessionId: (id: string) => void;
   loadSessions: () => void;
   loading: boolean;
   virtuoso: any;
 }
 
-export default function ChatHistory({ sessions, sessionId, setSessionId, loadSessions, loading, virtuoso }: Props) {
+export default function ChatHistory({ sessions, sessionId, setSessionId, loadSessions, loading, virtuoso, replaceMessages }: Props) {
+
   const [open, setOpen] = useState(false);
+  const { data: messages = [], status } = useChatMessages(sessionId);
+  useEffect(() => {
+    if (status === "success" && sessionId && messages.length > 0) {
+      replaceMessages(messages, { scrollToTop: true });
+    }
+  }, [status, sessionId]);
 
   function handleSessionChange(id: string) {
     setSessionId(id);
@@ -43,7 +51,7 @@ export default function ChatHistory({ sessions, sessionId, setSessionId, loadSes
         <Button
           variant="outline"
           className="hover:!bg-accent border-0" >
-      <History className="w-5 h-5" />
+          <History className="w-5 h-5" />
         </Button>
       </SheetTrigger>
 
