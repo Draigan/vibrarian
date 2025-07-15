@@ -5,12 +5,11 @@ import { useUserSettings } from "@/context/UserSettingsContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export function useChatActions(appendMessages, replaceMessages, deleteMessageAt, replaceMessageAt, replaceLastPendingAssistant, scrollLastUserMessageToTop, scrollToMessageKey) {
-  const { user } = useAuth();
+export function useChatActions(appendMessages, replaceMessageAt, replaceTypingDots, mapMessages) {
+  const { logout } = useAuth();
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
   const { settings } = useUserSettings();
-  const [shouldDeleteLast, setShouldDeleteLast] = useState(false);
 
   const sessionId = settings.chatSession;
   const stop = () => {
@@ -20,7 +19,7 @@ export function useChatActions(appendMessages, replaceMessages, deleteMessageAt,
   const mutation = useMutation({
     mutationFn: async (message: string) => {
       abortControllerRef.current = new AbortController();
-      const res = await fetch(`${BASE_URL}/api/chat`, {
+      const res = await fetch(`${BASE_URL}/api/send-message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -31,8 +30,15 @@ export function useChatActions(appendMessages, replaceMessages, deleteMessageAt,
         signal: abortControllerRef.current.signal,
       });
 
+
       if (!res.ok) throw new Error("Failed to send message");
-      return await res.json(); // assistant response
+
+      const data = await res.json(); // assistant response
+      if (data.logout) {
+        console.log("Logging out (from useChatActions)", data.error);
+        logout();
+      }
+      return data; // assistant response
     },
 
     onMutate: async (message) => {
@@ -56,23 +62,22 @@ export function useChatActions(appendMessages, replaceMessages, deleteMessageAt,
         id: id,
         key: id,
         role: "assistant",
-        content: message,
+        content: "",
         session_id: sessionId,
         created_at: new Date().toISOString(),
         status: "pending"
       };
-
       appendMessages([optimisticUserMessage]);
-       appendMessages([assistantTypingMessage], -1);
+      appendMessages([assistantTypingMessage], -1);
 
 
       queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
-      ...old,
-      optimisticUserMessage,
-    ]);
+        ...old,
+        optimisticUserMessage,
+      ]);
 
-    return { previous };
-  },
+      return { previous };
+    },
 
     onSuccess: (data, _input, _context) => {
       if (!sessionId || !settings.userName) return;
@@ -83,9 +88,19 @@ export function useChatActions(appendMessages, replaceMessages, deleteMessageAt,
         content: data.content || "(No response)",
         session_id: sessionId,
         created_at: new Date().toISOString(),
+        status: 'sent'
       };
 
-      replaceMessageAt(-1, assistantMessage)
+      //replaceMessageAt(-1, assistantMessage)
+      //replaceTypingDots(-1, assistantMessage)
+      mapMessages(msg => {
+        return (msg.status === "pending"
+          ? { ...msg, ...assistantMessage }
+          : msg
+        )
+      }
+      );
+      //replaceMessageContentAt(-1, assistantMessage)
       queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
         ...old,
         assistantMessage,
@@ -107,9 +122,6 @@ export function useChatActions(appendMessages, replaceMessages, deleteMessageAt,
         created_at: new Date().toISOString(),
         status: "failed"
       };
-      //replaceMessageAt(-1, { ...errorMessage });
-
-      //deleteMessageAt(-1);
       queryClient.setQueryData(
         ["chatMessages", sessionId, settings.userName],
         (old: any[] = []) =>
@@ -126,8 +138,8 @@ export function useChatActions(appendMessages, replaceMessages, deleteMessageAt,
     },
   });
 
-return {
-  ...mutation,
-  stop,
-};
+  return {
+    ...mutation,
+    stop,
+  };
 }

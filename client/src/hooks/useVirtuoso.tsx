@@ -3,7 +3,7 @@ import type { VirtuosoMessageListMethods } from "@virtuoso.dev/message-list";
 
 // T is your message type (e.g., Message)
 export interface HasRole {
-  role: string;
+  role?: string;
   status?: string;
 }
 
@@ -45,9 +45,6 @@ export function useVirtuoso<T extends HasRole>() {
     []
   );
 
-
-  // Assuming you have your ref:
-
   const getResolvedIndex = useCallback((index: number) => {
     // Pull current messages from Virtuoso's internal data
     const messages = virtuosoRef.current?.data.get?.() || [];
@@ -62,45 +59,24 @@ export function useVirtuoso<T extends HasRole>() {
 
     return resolvedIndex;
   }, []);
-  const scrollToIndex = useCallback(
-    (
-      index: number,
-      opts?: { align?: "start" | "center" | "end"; behavior?: "auto" | "smooth" }
-    ) => {
-      // Get the current list length from your state or Virtuoso's API
-      const messages = virtuosoRef.current?.data.get?.() || [];
-      let targetIndex: number | "LAST" = index;
 
-      if (index < 0) {
-        // Python-style negative index
-        const resolved = messages.length + index;
-        targetIndex = resolved < 0 ? 0 : resolved;
-      }
+const replaceMessageContentAt = useCallback(
+  (index: number, newContent: string) => {
+    if (!virtuosoRef.current) return;
 
-      virtuosoRef.current?.scrollToItem({
-        index: targetIndex,
-        align: opts?.align || "start",
-        behavior: opts?.behavior || "smooth",
-      });
-    },
-    []
-  );
-  //const appendMessages = useCallback((msgs: T[],index: number) => {
-  //  if (!virtuosoRef.current) return;
-  //if (index){
-  //  virtuosoRef.current?.data.append(msgs, () => ({
-  //    index: index,
-  //    align: "start",
-  //    behavior: "smooth",
-  //  }));
-  //  } else {
-  //    virtuosoRef.current?.data.append(msgs);
-  //  }
-  //});
+    const resolvedIndex = getResolvedIndex(index);
+
+    virtuosoRef.current.data.update((oldMessages: T[]) => {
+      return oldMessages.map((msg, i) =>
+        i === resolvedIndex ? { ...msg, content: newContent } : msg
+      );
+    });
+  },
+  [virtuosoRef, getResolvedIndex]
+);
 
   const appendMessages = useCallback((msgs: T[],index: number) => {
     if (!virtuosoRef.current) return;
-
   if (index !== undefined){
     index = getResolvedIndex(index);
     virtuosoRef.current?.data.append(msgs, () => ({
@@ -112,36 +88,7 @@ export function useVirtuoso<T extends HasRole>() {
     virtuosoRef.current?.data.append(msgs);
     }
   }, [virtuosoRef]);
-  // Scrolls the last user message to the top of the list
-  // Scroll to a message by key/id
 
-  //// Scroll to a message by key/id
-  //const scrollToMessageKey = useCallback((key: string, opts?: any) => {
-  //  virtuosoRef.current?.scrollToMessageKey(key, opts);
-  //}, []);
-  //const scrollToMessageKey = useCallback((index: number, opts?: any) => {
-  //  virtuosoRef.current?.scrollToIndex({
-  //    index,
-  //    align: opts?.align || "start",
-  //    behavior: opts?.behavior || "smooth",
-  //  });
-  //}, []);
-  const scrollToMessageKey = useCallback(
-    (key: string, opts?: { align?: "start" | "center" | "end"; behavior?: "auto" | "smooth" }) => {
-      const messages = messagesRef.current; // make sure messagesRef is up-to-date via useRef
-      const index = messages.findIndex(msg => msg.key === key);
-      if (index >= 0) {
-        virtuosoRef.current?.scrollToItem({
-          index,
-          align: opts?.align || "start",
-          behavior: opts?.behavior || "smooth",
-        });
-      } else {
-        console.warn(`Key "${key}" not found in messages.`);
-      }
-    },
-    []
-  );
   // Delete a message at the given index (supports negative indexing)
   const deleteMessageAt = useCallback((index: number) => {
     const messages = virtuosoRef.current?.data.get() || [];
@@ -182,38 +129,49 @@ export function useVirtuoso<T extends HasRole>() {
     newMessages[realIndex] = newMessage;
     virtuosoRef.current?.data.replace(newMessages);
   }, []);
+  //
+  const replaceTypingDots = useCallback((index: number, newMessage: T) => {
+    if (newMessage.role !== 'assistant') return;
+    const messages = virtuosoRef.current?.data.get() || [];
+    const len = messages.length;
+    if (!len) return;
 
-  // Replace last assistant message with status: "pending"
-  const replaceLastPendingAssistant = useCallback(
-    (patch: Partial<T> | ((m: T) => T)) => {
-      const messages = virtuosoRef.current?.data.get() || [];
-      // Find last assistant with status: "pending"
-      const idx = [...messages]
-        .map((m, i) => ({ ...m, _idx: i })) // keep index
-        .reverse()
-        .find(m => m.role === "assistant" && m.status === "pending")?._idx;
+    // Normalize negative index
+    const realIndex = index < 0 ? len + index : index;
+    if (realIndex < 0 || realIndex >= len) return;
 
-      if (typeof idx !== "number") return;
+    const newMessages = [...messages];
+    newMessages[realIndex] = newMessage;
+    virtuosoRef.current?.data.replace(newMessages);
+  }, []);
 
-      const newMessages = [...messages];
-      const oldMsg = newMessages[idx];
-      newMessages[idx] =
-        typeof patch === "function"
-          ? patch(oldMsg)
-          : { ...oldMsg, ...patch };
-      virtuosoRef.current?.data.replace(newMessages);
-    },
-    []
+const updateMessageAtIndex = (index: number, partial: Partial<T>) => {
+  if (!virtuosoRef.current) return;
+  const arr = virtuosoRef.current.data.get();
+  if (index < 0 || index >= arr.length) return;
+  const newArr = arr.map((msg, i) => 
+    i === index ? { ...msg, ...partial } : msg
   );
+  virtuosoRef.current.data.replace(newArr);
+};
+const mapMessages = useCallback(
+  (mapper: (msg: T) => T) => {
+    if (!virtuosoRef.current) return;
+    virtuosoRef.current.data.map(mapper);
+  },
+  [virtuosoRef]
+);
+
 
   return {
     virtuosoRef,
     replaceMessages,
     appendMessages,
-    scrollToMessageKey,
     deleteMessageAt,
     replaceMessageAt,
-    replaceLastPendingAssistant, // <-- here!
+    replaceTypingDots,
+    updateMessageAtIndex,
+    mapMessages,
   };
 }
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranscripts } from "@/hooks/useTranscripts";
-import  TranscriptSelector  from "@/components/transcript/TranscriptSelector";
+import TranscriptSelector from "@/components/transcript/TranscriptSelector";
 import TranscriptBody from "./TranscriptBody";
 
 export default function TranscriptManager() {
@@ -14,10 +14,9 @@ export default function TranscriptManager() {
       <TranscriptSelector
         transcripts={transcripts || []}
         selectedId={selected?.id}
-        onSelect={setSelected}
+        onSelect={(t) => setSelected(t)}
       />
-      <div className="flex-1 border-1 p-6">
-
+      <div className="flex-1">
         <TranscriptBody transcriptId={selected?.id} />
       </div>
     </div>

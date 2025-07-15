@@ -2,7 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export function useTranscriptBlocks(transcriptId?: string) {
   return useQuery({
     queryKey: ["transcript-blocks", transcriptId],
@@ -18,3 +17,4 @@ export function useTranscriptBlocks(transcriptId?: string) {
     enabled: !!transcriptId, // Only runs if transcriptId is provided
   });
 }
+

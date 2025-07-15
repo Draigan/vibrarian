@@ -4,13 +4,22 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 
+// Add this at the top of your file (or export from a types file if you like)
+export interface TranscriptDatePickerProps {
+  transcriptDates: Date[];
+  value?: Date;
+  onChange?: (date: Date | undefined) => void;
+  onClear?: () => void;
+  className?: string;
+}
+
 export function TranscriptDatePicker({
   transcriptDates = [],
   value,
   onChange,
   onClear,
   className = "",
-}) {
+}: TranscriptDatePickerProps) {
   function isDateEnabled(date: Date) {
     return transcriptDates.some(
       (d) => d.toDateString() === date.toDateString()
@@ -31,13 +40,13 @@ export function TranscriptDatePicker({
             {/* Spacer so text doesn't cover X */}
           </Button>
         </PopoverTrigger>
-        <PopoverContent side="bottom" align="end" className="p-0">
+        <PopoverContent side="bottom" align="start" className="p-0">
           <Calendar
             mode="single"
             selected={value}
             onSelect={onChange}
             className="rounded-md"
-            disabled={(date) => !isDateEnabled(date)}
+            disabled={(date: Date) => !isDateEnabled(date)}
             month={value ?? undefined}
           />
         </PopoverContent>

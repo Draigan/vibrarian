@@ -1,79 +1,199 @@
-//import { TriangleAlert } from "lucide-react";
-//
-//type Message = {
-//  id: string;
-//  role: "user" | "assistant";
-//  sender: "user" | "assistant";
-//  content: string;
-//  created_at: string;
-//  status?: "pending" | "failed" | "sent";
-//};
-//
-//interface ChatBubbleProps {
-//  message: Message;
-//  handleRetry: (msg: Message) => void;
-//}
-//
-//const AVATAR_USER = "/images/user-avatar.png";
-//const AVATAR_ASSISTANT = "/vibrarian.jpg";
-//
-//export function ChatBubble({ message, handleRetry }: ChatBubbleProps) {
-//  const isUser = message.role === "user";
-//
-//  return (
-//    <div className={`flex items-end gap-2 w-full ${isUser ? "justify-end" : "justify-start"}`}>
-//      {/* Avatar (assistant only, left side) */}
-//      {!isUser && (
-//        <img
-//          src={AVATAR_ASSISTANT}
-//          alt="AI"
-//          className="w-8 h-8 rounded-full border border-primary bg-background"
-//        />
-//      )}
-//
-//      {/* Bubble */}
-//      <div
-//        className={`
-//          max-w-[70%] px-4 py-3 rounded-2xl shadow
-//          ${isUser
-//            ? "bg-primary text-primary-foreground self-end"
-//            : "bg-card text-foreground self-start"}
-//          relative
-//        `}
-//      >
-//        <div className="whitespace-pre-line">
-//
-//          {message.content}
-//        </div>
-//        <div className="text-xs text-muted-foreground mt-2 text-right">
-//          {new Date(message.created_at).toLocaleTimeString()}
-//        </div>
-//        {/* Error/retry UI */}
-//        {message.status === "failed" && (
-//          <span className="ml-2 flex items-center gap-1 text-red-500 text-xs">
-//            <TriangleAlert className="w-4 h-4" />
-//            Failed to send
-//            <button
-//              className="ml-1 underline"
-//              onClick={() => handleRetry(message)}
-//              title="Retry"
-//            >
-//              Retry
-//            </button>
-//          </span>
-//        )}
-//      </div>
-//
-//      {/* Avatar (user, right side) */}
-//      {isUser && (
-//        <img
-//          src={AVATAR_USER}
-//          alt="You"
-//          className="w-8 h-8 rounded-full border border-primary bg-background"
-//        />
-//      )}
-//    </div>
-//  );
-//}
-//
-//export default ChatBubble;
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button, type ButtonProps } from "../ui/button";
+import MessageLoading from "../ui/chat/message-loading";
+// ChatBubble
+const chatBubbleVariant = cva(
+  "flex gap-2 max-w-[100%] items-end relative group",
+  {
+    variants: {
+      variant: {
+        received: "self-start",
+        sent: "self-end flex-row-reverse",
+      },
+      layout: {
+        default: "",
+        ai: "max-w-full w-full items-center",
+      },
+    },
+    defaultVariants: {
+      variant: "received",
+      layout: "default",
+    },
+  },
+);
+
+interface ChatBubbleProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+  VariantProps<typeof chatBubbleVariant> { }
+
+const ChatBubble = React.forwardRef<HTMLDivElement, ChatBubbleProps>(
+  ({ className, variant, layout, children, ...props }, ref) => (
+    <div
+      className={cn(
+        chatBubbleVariant({ variant, layout, className }),
+        "relative group",
+      )}
+      ref={ref}
+      {...props}
+    >
+      {React.Children.map(children, (child) =>
+        React.isValidElement(child) && typeof child.type !== "string"
+          ? React.cloneElement(child, {
+            variant,
+            layout,
+          } as React.ComponentProps<typeof child.type>)
+          : child,
+      )}
+    </div>
+  ),
+);
+ChatBubble.displayName = "ChatBubble";
+
+// ChatBubbleAvatar
+interface ChatBubbleAvatarProps {
+  src?: string;
+  fallback?: string;
+  className?: string;
+}
+
+const ChatBubbleAvatar: React.FC<ChatBubbleAvatarProps> = ({
+  src,
+  className,
+}) => (
+  <Avatar className={className}>
+    <AvatarImage src={src} alt="Avatar" />
+  </Avatar>
+);
+
+// ChatBubbleMessage
+const chatBubbleMessageVariants = cva("p-4", {
+  variants: {
+    variant: {
+      received:
+        "text-secondary-foreground rounded-r-lg rounded-tl-lg",
+      sent: "bg-accent rounded-tr-lg rounded-l-lg rounded-br-lg",
+    },
+    layout: {
+      default: "",
+      ai: "border-t w-full rounded-none bg-transparent",
+    },
+  },
+  defaultVariants: {
+    variant: "received",
+    layout: "default",
+  },
+});
+
+interface ChatBubbleMessageProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+  VariantProps<typeof chatBubbleMessageVariants> {
+  isLoading?: boolean;
+}
+
+const ChatBubbleMessage = React.forwardRef<
+  HTMLDivElement,
+  ChatBubbleMessageProps
+>(
+  (
+    { className, variant, layout, isLoading = false, children, ...props },
+    ref,
+  ) => (
+    <div
+      className={cn(
+        chatBubbleMessageVariants({ variant, layout, className }),
+        "break-words max-w-full whitespace-pre-wrap",
+      )}
+      ref={ref}
+      {...props}
+    >
+      {isLoading ? (
+        <div className="flex items-center space-x-2">
+          <MessageLoading />
+        </div>
+      ) : (
+        children
+      )}
+    </div>
+  ),
+);
+ChatBubbleMessage.displayName = "ChatBubbleMessage";
+
+// ChatBubbleTimestamp
+interface ChatBubbleTimestampProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  timestamp: string;
+}
+
+const ChatBubbleTimestamp: React.FC<ChatBubbleTimestampProps> = ({
+  timestamp,
+  className,
+  ...props
+}) => (
+  <div className={cn("text-xs mt-2 text-right", className)} {...props}>
+  </div>
+);
+
+// ChatBubbleAction
+type ChatBubbleActionProps = ButtonProps & {
+  icon: React.ReactNode;
+};
+
+const ChatBubbleAction: React.FC<ChatBubbleActionProps> = ({
+  icon,
+  onClick,
+  className,
+  variant = "ghost",
+  size = "icon",
+  ...props
+}) => (
+  <Button
+    variant={variant}
+    size={size}
+    className={className}
+    onClick={onClick}
+    {...props}
+  >
+    {icon}
+  </Button>
+);
+
+interface ChatBubbleActionWrapperProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "sent" | "received";
+  className?: string;
+}
+
+const ChatBubbleActionWrapper = React.forwardRef<
+  HTMLDivElement,
+  ChatBubbleActionWrapperProps
+>(({ variant, className, children, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "absolute top-1/2 -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+      variant === "sent"
+        ? "-left-1 -translate-x-full flex-row-reverse"
+        : "-right-1 translate-x-full",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </div>
+));
+ChatBubbleActionWrapper.displayName = "ChatBubbleActionWrapper";
+
+export {
+  ChatBubble,
+  ChatBubbleAvatar,
+  ChatBubbleMessage,
+  ChatBubbleTimestamp,
+  chatBubbleVariant,
+  chatBubbleMessageVariants,
+  ChatBubbleAction,
+  ChatBubbleActionWrapper,
+};
+

@@ -4,7 +4,7 @@ import { requireAuth } from "../middleware/authMiddleWare.js";
 import { storeMessage } from "../utils/messageQueue.js";
 const router = express.Router();
 
-router.post("/chat", requireAuth, async (req, res) => {
+router.post("/send-message", requireAuth, async (req, res) => {
   try {
     const { message, sessionId } = req.body;
 
@@ -54,8 +54,19 @@ router.post("/chat", requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error("Error in /api/chat:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    // AuthApiError (real auth error) triggers logout, but AuthRetryableFetchError does NOT
+    if (
+      error.name === "AuthApiError" ||
+      error.status === 401 ||
+      error.status === 403
+    ) {
+      return res.status(200).json({ logout: true, error: error });
+    } else if(error.status === 503) {
+      // Network/undici/fetch error: don't log out!
+      return res.status(503).json({ error: error, logout: false });
+    }
   }
+  return res.status(500).json({ error: "Internal server error" });
 });
 
 export default router;

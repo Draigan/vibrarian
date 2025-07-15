@@ -5,7 +5,6 @@ import { useTranscripts } from "@/hooks/useTranscripts";
 export default function TranscriptCalendar() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const {data} = useTranscripts();
-  console.log(data)
 
   return (
     <div className="p-4">

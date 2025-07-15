@@ -10,7 +10,6 @@ import { Button } from "../ui/button";
 import { SessionButton } from "../SessionButton";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import { History } from "lucide-react";
-import { useChatMessages } from "@/hooks/useChatMessages";
 
 type SessionType = {
   id: string;
@@ -27,25 +26,13 @@ type Props = {
   virtuoso: any;
 }
 
-export default function ChatHistory({ sessions, sessionId, setSessionId, loadSessions, loading, virtuoso, replaceMessages }: Props) {
+export default function ChatHistory({ sessionId, sessions, handleSwitchSession, loading }: Props) {
 
   const [open, setOpen] = useState(false);
-  const { data: messages = [], status } = useChatMessages(sessionId);
-  useEffect(() => {
-    if (status === "success" && sessionId && messages.length > 0) {
-      replaceMessages(messages, { scrollToTop: true });
-    }
-  }, [status, sessionId]);
-
-  function handleSessionChange(id: string) {
-    setSessionId(id);
-    setOpen(false);
-  }
 
   return (
     <Sheet open={open} onOpenChange={(val) => {
       setOpen(val);
-      if (val) loadSessions();
     }}>
       <SheetTrigger asChild>
         <Button
@@ -76,7 +63,7 @@ export default function ChatHistory({ sessions, sessionId, setSessionId, loadSes
                   timestamp={formatted}
                   messageCount={5}
                   isActive={item.id === sessionId}
-                  onClick={() => handleSessionChange(item.id)}
+                  onClick={() => handleSwitchSession(item.id)}
                 />
               );
             })

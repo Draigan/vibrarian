@@ -1,66 +1,56 @@
-// components/TranscriptSelector.tsx
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
 import { TranscriptDatePicker } from "@/components/transcript/TranscriptDatePicker";
+import { parseISO, isSameDay, format } from "date-fns";
+
+export interface Transcript {
+  id: string | number;
+  title?: string;
+  date: string;
+  [key: string]: any;
+}
+
+export interface TranscriptSelectorProps {
+  transcripts?: Transcript[];
+  selectedId?: Transcript["id"];
+  onSelect?: (t: Transcript) => void;
+  className?: string;
+}
 
 export default function TranscriptSelector({
   transcripts = [],
   selectedId,
   onSelect,
   className = "",
-}) {
-  const [search, setSearch] = useState("");
+}: TranscriptSelectorProps) {
   const [pickedDate, setPickedDate] = useState<Date | undefined>(undefined);
 
-  // All unique dates as JS Date objects
-  const transcriptDates = useMemo(
+  const transcriptDates = useMemo<Date[]>(
     () =>
       Array.from(
-        new Set(
-          transcripts
-            .map((t) => t.date)
-            .filter(Boolean)
-        )
+        new Set(transcripts.map((t) => t.date).filter(Boolean))
       )
-        .map((d) => new Date(d as string))
+        .map((d) => parseISO(d as string))
         .filter((d) => !isNaN(d.getTime())),
     [transcripts]
   );
 
-  // Filter by search and/or pickedDate
-  const filtered = useMemo(() => {
+  const filtered = useMemo<Transcript[]>(() => {
     let list = transcripts;
     if (pickedDate) {
-      list = list.filter((t)=>{
-        console.log(t.date )
-        console.log("newdate : ", new Date(t.date));
-
-        return t.date && new Date(t.date).toDateString() === pickedDate.toDateString()
-      }
-      );
-    }
-    if (search.trim()) {
       list = list.filter((t) => {
-        const title = t.title || "";
-        const date = t.date || "";
-        return (
-          title.toLowerCase().includes(search.toLowerCase()) ||
-          date.toLowerCase().includes(search.toLowerCase())
-        );
+        const tDate = t.date ? parseISO(t.date) : undefined;
+        return tDate && isSameDay(tDate, pickedDate);
       });
     }
     return list;
-  }, [transcripts, search, pickedDate]);
+  }, [transcripts, pickedDate]);
 
   return (
-    <div className={`w-80 bg-background flex flex-col border-r h-[900px] ${className}`}>
-      <div className="border-1 pl-10 flex items-center h-12">
-      <h1 className="text-lg ">Transcripts
-      </h1>
+    <div className={`flex flex-col h-full w-[260px] bg-card border-r ${className}`}>
+      <div className="h-14 w-full flex justify-center items-end px-2">
+        <span className="text-lg font-semibold text-primary">Transcripts</span>
       </div>
-      
-      <div className="p-4 border-b flex flex-col gap-2">
+      <div className="p-4 border-b border-border flex flex-col gap-2">
         <TranscriptDatePicker
           transcriptDates={transcriptDates}
           value={pickedDate}
@@ -68,46 +58,44 @@ export default function TranscriptSelector({
           onClear={() => setPickedDate(undefined)}
         />
       </div>
-      <div className="overflow-auto flex-1">
-        <table className="min-w-full table-auto text-left border-separate border-spacing-y-1">
-          <thead>
-            <tr className="text-xs text-muted-foreground uppercase">
-              <th className="pl-4 py-2">Title</th>
-              <th className="py-2">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={2} className="text-center text-muted-foreground py-8">
-                  No transcripts found
-                </td>
-              </tr>
-            )}
-            {filtered.map((t) => (
-              <tr
-                key={t.id}
-                className={`
-                  transition
-                  ${selectedId === t.id ? "bg-primary/10 font-medium" : "hover:bg-muted"}
-                  rounded-xl
-                  cursor-pointer
-                `}
-                onClick={() => onSelect?.(t)}
-                tabIndex={0}
-                role="button"
-                aria-selected={selectedId === t.id}
-              >
-                <td className="pl-4 py-3 truncate max-w-[10rem]">
-                  {t.title || <span className="italic text-muted-foreground">Untitled</span>}
-                </td>
-                <td className="py-3">
-                  <Badge variant={selectedId === t.id ? "default" : "outline"}>{t.date}</Badge>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex-1 overflow-auto flex flex-col gap-1 px-2 py-4">
+        {filtered.length === 0 && (
+          <div className="text-center text-muted-foreground py-8">
+            No transcripts found
+          </div>
+        )}
+        {filtered.map((t) => {
+          let formattedDate = "";
+          if (t.date) {
+            try {
+              formattedDate = format(parseISO(t.date), "MMM d, yyyy");
+            } catch {
+              formattedDate = t.date;
+            }
+          }
+          const isSelected = selectedId === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onSelect?.(t)}
+              tabIndex={0}
+              aria-selected={isSelected}
+              className={`
+                w-full flex items-center px-4 py-2 rounded-lg
+                font-medium transition-colors duration-150
+                text-left
+                ${isSelected
+                  ? "bg-accent text-primary"
+                  : "hover:bg-accent hover:text-primary text-foreground"}
+                outline-none focus-visible:ring-2 focus-visible:ring-accent
+                shadow-none border-0
+              `}
+              style={{ minHeight: 40 }}
+            >
+              <span className="truncate">{formattedDate}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

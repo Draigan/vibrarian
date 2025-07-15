@@ -32,7 +32,7 @@ export function useChatSession() {
     data: sessions,
     error,
     isLoading,
-    refetch: loadSessions,
+    refetch: refetchSessions,
   } = useQuery({
     queryKey: ["chatSessions", settings.userName],
     queryFn: async () => {
@@ -52,7 +52,7 @@ export function useChatSession() {
     sessions: sessions || [],
     loading: isLoading,
     error: error instanceof Error ? error.message : String(error),
-    loadSessions,
+    refetchSessions,
   };
 }
 

@@ -1,37 +1,49 @@
-import { useState, useRef, useEffect } from "react";
-import { useChatSession } from "@/hooks/useChatSession";
-import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatActions } from "@/hooks/useChatActions";
 import { ChatHeader } from "./ChatHeader";
 import { ChatFooter } from "./ChatFooter";
-import Test from "./Test";
 import { useVirtuoso } from "@/hooks/useVirtuoso";
+import ChatBody from "./ChatBody";
+import { useState } from "react";
+import { useChatMessages } from "@/hooks/useChatMessages";
+import { useChatSession } from "@/hooks/useChatSession";
+import { replace } from "react-router-dom";
 
 interface Message {
   key: string;
   content: string;
   role: "user" | "assistant";
+  status: "pending" | "sent" | "error";
 }
 
 export function Chat() {
-  const { virtuosoRef, replaceMessages, appendMessages, deleteMessageAt, replaceMessageAt,replaceLastPendingAssistant, scrollLastUserMessageToTop, scrollToMessageKey } = useVirtuoso<Message>();
-  const { mutate: sendMessage, status, stop } = useChatActions(appendMessages, replaceMessages, deleteMessageAt, replaceMessageAt, replaceLastPendingAssistant, scrollLastUserMessageToTop, scrollToMessageKey);
-  const assistantIsTyping = status === "pending";
+  const { virtuosoRef, replaceMessages, appendMessages, replaceTypingDots, replaceMessageAt, updateMessageAtIndex, mapMessages } = useVirtuoso<Message>();
+  const { mutate: sendMessage, status, stop } = useChatActions(appendMessages, replaceMessageAt, replaceTypingDots, mapMessages);
 
-console.log("Virtuoso current messages:", virtuosoRef.current?.data.get());
+  const { sessions, sessionId, setSessionId, loading } = useChatSession();
+
+  // Get all messages for a session
+  const { data: messages = [], status: isMessagesLoading } = useChatMessages(sessionId);
+
+  function handleSwitchSession(sessionId: string) {
+    setSessionId(sessionId)
+    if (sessionId === "new") return;
+    replaceMessages(messages);
+  }
 
   return (
     <div className="flex w-full h-full justify-center">
       <div className="flex flex-col items-center justify-center h-full w-full relative">
         <ChatHeader
-          replaceMessages={replaceMessages}
+          handleSwitchSession={handleSwitchSession}
+          sessions={sessions}
+          sessionId={sessionId}
         />
-        <Test virtuoso={virtuosoRef}  />
+        <ChatBody virtuoso={virtuosoRef} />
         <div className="h-34 bg-card" />
         <div className="absolute bottom-0 ">
           <ChatFooter
             sendMessage={sendMessage}
-            assistantIsTyping={assistantIsTyping}
+            assistantIsTyping={status === "pending"}
             stop={stop}
           />
         </div>
