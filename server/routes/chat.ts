@@ -2,8 +2,11 @@ import express from "express";
 import crypto from "crypto";
 import { requireAuth } from "../middleware/authMiddleWare.js";
 import { storeMessage } from "../utils/messageQueue.js";
+import dotenv from "dotenv";
 const router = express.Router();
 
+dotenv.config();
+const N8N_ENDPOINT = process.env.N8N_ENDPOINT!;
 router.post("/send-message", requireAuth, async (req, res) => {
   try {
     const { message, sessionId } = req.body;
@@ -23,11 +26,12 @@ router.post("/send-message", requireAuth, async (req, res) => {
     }
     console.log("User: ", userMessage);
     // Forward the message to n8n
-    const n8nResponse = await fetch("http://localhost:5678/webhook/n8n-chat", {
+    const n8nResponse = await fetch(`${N8N_ENDPOINT}/webhook/vibrarian`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: userMessage }),
+      body: JSON.stringify({ query: userMessage, sessionId  }),
     });
+    console.log(n8nResponse.body);
 
     if (!n8nResponse.ok) {
       const text = await n8nResponse.text();
@@ -61,7 +65,7 @@ router.post("/send-message", requireAuth, async (req, res) => {
       error.status === 403
     ) {
       return res.status(200).json({ logout: true, error: error });
-    } else if(error.status === 503) {
+    } else if (error.status === 503) {
       // Network/undici/fetch error: don't log out!
       return res.status(503).json({ error: error, logout: false });
     }
