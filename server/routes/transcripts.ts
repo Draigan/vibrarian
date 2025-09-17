@@ -25,8 +25,8 @@ router.get("/transcripts", requireAuth, async (req, res) => {
   const { data, error } = await serviceSupabase
     .from("owm_lr_transcripts")
     .select("*")
-    // .eq("user_id", userId) // Uncomment if you want to filter
-    .order("created_at", { ascending: false });
+    // .eq("user_id", userId) // filter
+    .order("filename", { ascending: false });
 
   if (error) {
     logger.error(`❌ Failed to fetch transcripts for user ${userId}: ${error.message}`, { error });

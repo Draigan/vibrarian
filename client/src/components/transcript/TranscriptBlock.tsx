@@ -1,18 +1,12 @@
 import { TranscriptBlockActions } from "./TranscriptBlockActions";
 import TranscriptBlockText from "./TranscriptBlockText";
 import { useState } from "react";
+import type { TranscriptBlock } from "@/types/transcript";
 
-// Define the Block type
-export interface Block {
-  id: string;
-  speaker?: string;
-  start?: string;
-  block: string;
-}
 
 // Props for TranscriptBlock
 interface TranscriptBlockProps {
-  block: Block;
+  block: TranscriptBlock;
   color: string;
   editing: boolean;
   draft: string;

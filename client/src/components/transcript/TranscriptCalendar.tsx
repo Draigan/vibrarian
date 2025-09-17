@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar"
-import { useTranscripts } from "@/hooks/useTranscripts";
 
 export default function TranscriptCalendar() {
   const [date, setDate] = useState<Date | undefined>(new Date())
-  const {data} = useTranscripts();
 
   return (
     <div className="p-4">

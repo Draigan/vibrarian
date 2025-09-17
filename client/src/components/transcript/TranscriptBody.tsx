@@ -1,13 +1,28 @@
+/**
+ * TranscriptBody
+ * --------------
+ * Displays the blocks of a transcript using Virtuoso for virtualized rendering.
+ * 
+ * - Fetches blocks with `useTranscriptBlocks(transcriptId)`
+ * - Shows loading/error/empty states
+ * - Assigns each speaker a consistent color from a palette
+ * - Tracks local edit state per block (start, change, save, cancel)
+ * - Delegates block rendering to `TranscriptBlock`
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { useTranscriptBlocks } from "@/hooks/useTranscriptBlocks";
 import TranscriptBlock from "./TranscriptBlock";
+import type { TranscriptBlock as Block } from "@/types/transcript";
 import {
   VirtuosoMessageList,
   VirtuosoMessageListLicense,
 } from "@virtuoso.dev/message-list";
 import { Loader } from "../myui/Loader";
 
-type Block = { id: string; speaker?: string; block: string };
+type TranscriptBodyProps = {
+  transcriptId: string | undefined;
+};
 
 // 1. Speaker colors palette
 const SPEAKER_COLORS = [
@@ -16,11 +31,11 @@ const SPEAKER_COLORS = [
   "#0d9488", "#fcd34d", "#7c3aed", "#10b981", "#c026d3", "#fbbf24", "#57534e", "#fde68a"
 ];
 
-export default function TranscriptBody({ transcriptId }: { transcriptId: string }) {
-  const { data: blocks, isLoading, error } = useTranscriptBlocks(transcriptId);
+export default function TranscriptBody({ transcriptId }: TranscriptBodyProps  ) {
+  const { data: blocks = [], isLoading, error } = useTranscriptBlocks(transcriptId);
 
   // Edit state: { [blockId]: { editing: bool, draft: string } }
-  const [editState, setEditState] = useState<{ [id: string]: { editing: boolean, draft: string } }>({});
+  const [editState, setEditState] = useState<{ [id: number]: { editing: boolean, draft: string } }>({});
   useEffect(() => {
     setEditState({}); // clear on transcript change
   }, [transcriptId]);
@@ -74,21 +89,21 @@ export default function TranscriptBody({ transcriptId }: { transcriptId: string 
   }
 
   // Handler creators:
-  const handleStartEdit = (id: string, initial: string) => {
+  const handleStartEdit = (id: number, initial: string) => {
     setEditState(s => ({
       ...s,
       [id]: { editing: true, draft: initial }
     }));
   };
 
-  const handleChangeDraft = (id: string, val: string) => {
+  const handleChangeDraft = (id: number, val: string) => {
     setEditState(s => ({
       ...s,
       [id]: { ...s[id], draft: val }
     }));
   };
 
-  const handleSave = (id: string) => {
+  const handleSave = (id: number) => {
     // TODO: Save editState[id].draft to API/server if needed
     setEditState(s => ({
       ...s,
@@ -96,7 +111,7 @@ export default function TranscriptBody({ transcriptId }: { transcriptId: string 
     }));
   };
 
-  const handleCancel = (id: string, original: string) => {
+  const handleCancel = (id: number, original: string) => {
     setEditState(s => ({
       ...s,
       [id]: { editing: false, draft: original }

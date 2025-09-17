@@ -1,5 +1,6 @@
 // hooks/useTranscriptBlocks.ts
 import { useQuery } from "@tanstack/react-query";
+import type { TranscriptBlock } from "@/types/transcript";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export function useTranscriptBlocks(transcriptId?: string) {
@@ -11,7 +12,7 @@ export function useTranscriptBlocks(transcriptId?: string) {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch transcript blocks");
-      const data = await res.json();
+      const data: { blocks: TranscriptBlock[] } = await res.json();
       return data.blocks;
     },
     enabled: !!transcriptId, // Only runs if transcriptId is provided
