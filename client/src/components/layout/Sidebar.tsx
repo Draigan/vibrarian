@@ -1,8 +1,21 @@
-import React, { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { SidebarNavLinks } from "./SidebarNavLinks";
 import { SidebarFooter } from "./SidebarFooter";
+import { type UserSettings } from "@/types/user_settings";
 
-export function Sidebar({ navLinks, settings, handleLogout }) {
+type NavLink = {
+  to: string;
+  label: string;
+  icon: ReactNode;
+  show: boolean;
+}
+
+type SidebarProps = {
+  navLinks: NavLink[];
+  settings: UserSettings;
+  handleLogout: () => void;
+}
+export function Sidebar({ navLinks, settings, handleLogout }: SidebarProps) {
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
   const [hovered, setHovered] = useState(false);
   const collapsed = manuallyCollapsed && !hovered;

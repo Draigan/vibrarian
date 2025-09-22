@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { SidebarNavButton } from "./SidebarNavButton";
@@ -12,14 +12,17 @@ import {
   FileText,
   LogIn,
   LogOut,
-  User as UserIcon,
 } from "lucide-react";
 import { useUserSettings } from "@/context/UserSettingsContext";
 
-export function AppLayout({ children }) {
+type AppLayoutProps = {
+  children: ReactNode;
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
   const { logout } = useAuth();
 
-  const {settings} = useUserSettings()
+  const { settings } = useUserSettings()
   const navigate = useNavigate();
 
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
@@ -34,7 +37,7 @@ export function AppLayout({ children }) {
   const navLinks = [
     { to: "/", label: "Home", icon: <Home size={20} />, show: true },
     { to: "/chat", label: "Chat", icon: <MessageCircle size={20} />, show: !!settings.userName },
-    { to: "/transcripts", label: "Transcripts", icon: <FileText size={20} />, show: !!settings.userName},
+    { to: "/transcripts", label: "Transcripts", icon: <FileText size={20} />, show: !!settings.userName },
   ];
 
   return (

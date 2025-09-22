@@ -1,11 +1,5 @@
 import { createContext, useContext, useState } from "react";
-
-type UserSettings = {
-  theme: "light" | "dark";
-  userName: string | null;
-  chatSession: string;
-  role: 'admin' | 'viewer' | 'editor';
-};
+import type { UserSettings } from "@/types/user_settings";
 
 const defaultSettings: UserSettings = {
   theme: "dark",
