@@ -31,7 +31,7 @@ export function LoginForm({
 
     try {
       setLoading(true);
-      await login(email, password);
+     await login(email, password);
     } catch (err: any) {
       console.error("Login error (UI):", err);
       setError(err.message || "Login failed. Please try again.");

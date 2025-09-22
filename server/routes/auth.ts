@@ -1,4 +1,3 @@
-// server/routes/auth.ts
 import express from "express";
 import cookieParser from "cookie-parser";
 import { supabase, createUserClient } from "../db/supabase.js";
@@ -7,6 +6,9 @@ const router = express.Router();
 
 router.use(cookieParser());
 
+// -------------------------
+// SESSION: validate + hydrate
+// -------------------------
 router.get("/session", async (req, res) => {
   const sb_token = req.cookies.sb_token;
   if (!sb_token) {
@@ -17,18 +19,17 @@ router.get("/session", async (req, res) => {
     const supabaseUser = createUserClient(sb_token);
     const { data, error } = await supabaseUser.auth.getUser();
 
-    // Only log out for explicit auth errors (not fetch/network errors)
+    // Handle auth errors
     if (error) {
-      // AuthApiError (real auth error) triggers logout, but AuthRetryableFetchError does NOT
       if (
         error.name === "AuthApiError" ||
         error.status === 401 ||
         error.status === 403
       ) {
-        return res.status(200).json({ logout: true, error: error });
+        return res.status(200).json({ logout: true, error });
       } else {
-        // Network/undici/fetch error: don't log out!
-        return res.status(503).json({ error: error, logout: false });
+        // network/undici/fetch error → don't force logout
+        return res.status(503).json({ error, logout: false });
       }
     }
 
@@ -36,19 +37,50 @@ router.get("/session", async (req, res) => {
       return res.status(200).json({ logout: true, error: "User not found" });
     }
 
-    return res.json({ user: data.user, logout: false, error: null });
+    const userId = data.user.id;
+
+    // fetch role
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+
+    if (roleError) console.error("Error fetching role:", roleError.message);
+
+    // fetch settings
+    const { data: settingsData, error: settingsError } = await supabase
+      .from("user_settings")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (settingsError) console.error("Error fetching settings:", settingsError.message);
+
+    return res.json({
+      user: data.user,
+      role: roleData?.role ?? "viewer",
+      settings: settingsData ?? { theme: "light" },
+      logout: false,
+      error: null,
+    });
   } catch (e) {
-    // DB/network/unknown error: do NOT log out!
     return res.status(503).json({ error: "Server error", logout: false });
   }
 });
 
+// -------------------------
+// LOGIN
+// -------------------------
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: "Missing fields" });
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
   if (error) return res.status(401).json({ error: error.message });
 
   res.cookie("sb_token", data.session.access_token, {
@@ -61,6 +93,9 @@ router.post("/login", async (req, res) => {
   res.json({ user: data.user });
 });
 
+// -------------------------
+// LOGOUT
+// -------------------------
 router.post("/logout", (req, res) => {
   res.clearCookie("sb_token", {
     httpOnly: true,
@@ -70,6 +105,9 @@ router.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
+// -------------------------
+// SIGNUP
+// -------------------------
 router.post("/signup", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -83,9 +121,17 @@ router.post("/signup", async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
+  const userId = data.user?.id;
+
+  // default role + settings
   await supabase.from("user_roles").insert({
-    user_id: data.user?.id,
-    role: "editor"
+    user_id: userId,
+    role: "viewer",
+  });
+
+  await supabase.from("user_settings").insert({
+    user_id: userId,
+    theme: "dark",
   });
 
   const login = await supabase.auth.signInWithPassword({ email, password });

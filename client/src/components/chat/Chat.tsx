@@ -3,10 +3,8 @@ import { ChatHeader } from "./ChatHeader";
 import { ChatFooter } from "./ChatFooter";
 import { useVirtuoso } from "@/hooks/useVirtuoso";
 import ChatBody from "./ChatBody";
-import { useState } from "react";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatSession } from "@/hooks/useChatSession";
-import { replace } from "react-router-dom";
 
 interface Message {
   key: string;
@@ -16,17 +14,20 @@ interface Message {
 }
 
 export function Chat() {
-  const { virtuosoRef, replaceMessages, appendMessages, replaceTypingDots, replaceMessageAt, updateMessageAtIndex, mapMessages } = useVirtuoso<Message>();
-  const { mutate: sendMessage, status, stop } = useChatActions(appendMessages, replaceMessageAt, replaceTypingDots, mapMessages);
+  const { virtuosoRef, replaceMessages, appendMessages, replaceTypingDots, replaceMessageAt, mapMessages } = useVirtuoso<Message>();
+  const { mutate: sendMessage, stop } = useChatActions(appendMessages, replaceMessageAt, replaceTypingDots, mapMessages);
 
-  const { sessions, sessionId, setSessionId, loading } = useChatSession();
+  const { sessions, sessionId, setSessionId } = useChatSession();
 
   // Get all messages for a session
   const { data: messages = [], status: isMessagesLoading } = useChatMessages(sessionId);
 
   function handleSwitchSession(sessionId: string) {
     setSessionId(sessionId)
-    if (sessionId === "new") return;
+    if (sessionId === "new") {
+      replaceMessages([]);
+      return;
+    };
     replaceMessages(messages);
   }
 
@@ -43,7 +44,7 @@ export function Chat() {
         <div className="absolute bottom-0 ">
           <ChatFooter
             sendMessage={sendMessage}
-            assistantIsTyping={status === "pending"}
+            assistantIsTyping={isMessagesLoading === "pending"}
             stop={stop}
           />
         </div>

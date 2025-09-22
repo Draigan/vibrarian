@@ -4,22 +4,24 @@ type UserSettings = {
   theme: "light" | "dark";
   userName: string | null;
   chatSession: string;
+  role: 'admin' | 'viewer' | 'editor';
 };
 
 const defaultSettings: UserSettings = {
   theme: "dark",
   userName: null,
   chatSession: crypto.randomUUID(),
+  role: 'viewer',
 };
 
 const UserSettingsContext = createContext<{
   settings: UserSettings;
   updateSettings: (newSettings: Partial<UserSettings>) => void;
-  clearSettings: () => void; // <-- add here
+  clearSettings: () => void; 
 }>({
   settings: defaultSettings,
   updateSettings: () => {},
-  clearSettings: () => {},    // <-- add here
+  clearSettings: () => {},
 });
 
 export const UserSettingsProvider = ({ children }: { children: React.ReactNode }) => {

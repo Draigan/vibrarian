@@ -14,7 +14,7 @@ export default function TranscriptManager() {
       <TranscriptSelector
         transcripts={transcripts || []}
         selectedId={selected?.id}
-        onSelect={(t) => setSelected(t)}
+        onSelect={(t:any) => setSelected(t)}
       />
       <div className="flex-1">
         <TranscriptBody transcriptId={selected?.id} />
