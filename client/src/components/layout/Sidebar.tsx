@@ -30,7 +30,7 @@ export function Sidebar({ navLinks, settings, handleLogout }: SidebarProps) {
         z-50
         p-0
       `}
-      style={{ minWidth: 56, maxWidth: 256 }}
+      style={{ display: 'none',minWidth: 56, maxWidth: 256 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >

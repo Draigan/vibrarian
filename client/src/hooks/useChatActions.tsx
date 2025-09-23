@@ -1,22 +1,52 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type UseMutateFunction } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useUserSettings } from "@/context/UserSettingsContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export function useChatActions(appendMessages, replaceMessageAt, replaceTypingDots, mapMessages) {
+// Shared message type
+export type ChatMessage = {
+  id: string;
+  key: string;
+  role: "user" | "assistant";
+  content: string;
+  session_id: string;
+  created_at: string;
+  status?: "pending" | "sent" | "failed";
+};
+
+// API response type
+type SendMessageResponse = {
+  content: string;
+  logout?: boolean;
+  error?: string;
+};
+
+type AppendMessages = (msgs: ChatMessage[], index?: number) => void;
+type ReplaceMessageAt = (index: number, msg: ChatMessage) => void;
+type ReplaceTypingDots = (index: number, msg: ChatMessage) => void;
+type MapMessages = (fn: (msg: ChatMessage) => ChatMessage) => void;
+
+export function useChatActions(
+  appendMessages: AppendMessages,
+  replaceMessageAt: ReplaceMessageAt,
+  replaceTypingDots: ReplaceTypingDots,
+  mapMessages: MapMessages
+) {
   const { logout } = useAuth();
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
   const { settings } = useUserSettings();
 
   const sessionId = settings.chatSession;
+
+  // Cancel send message
   const stop = () => {
     abortControllerRef.current?.abort();
   };
 
-  const mutation = useMutation({
+  const mutation = useMutation<SendMessageResponse, Error, string>({
     mutationFn: async (message: string) => {
       abortControllerRef.current = new AbortController();
       const res = await fetch(`${BASE_URL}/api/send-message`, {
@@ -30,26 +60,25 @@ export function useChatActions(appendMessages, replaceMessageAt, replaceTypingDo
         signal: abortControllerRef.current.signal,
       });
 
-
       if (!res.ok) throw new Error("Failed to send message");
 
-      const data = await res.json(); // assistant response
+      const data: SendMessageResponse = await res.json();
       if (data.logout) {
         console.log("Logging out (from useChatActions)", data.error);
         logout();
       }
-      return data; // assistant response
+      return data;
     },
 
     onMutate: async (message) => {
       if (!sessionId || !settings.userName) return;
 
       await queryClient.cancelQueries(["chatMessages", sessionId, settings.userName]);
-      const previous = queryClient.getQueryData(["chatMessages", sessionId, settings.userName]);
+      const previous = queryClient.getQueryData<ChatMessage[]>(["chatMessages", sessionId, settings.userName]);
 
       let id = crypto.randomUUID();
-      const optimisticUserMessage = {
-        id: id,
+      const optimisticUserMessage: ChatMessage = {
+        id,
         key: id,
         role: "user",
         content: message,
@@ -58,73 +87,55 @@ export function useChatActions(appendMessages, replaceMessageAt, replaceTypingDo
       };
 
       id = crypto.randomUUID();
-      const assistantTypingMessage = {
-        id: id,
+      const assistantTypingMessage: ChatMessage = {
+        id,
         key: id,
         role: "assistant",
         content: "",
         session_id: sessionId,
         created_at: new Date().toISOString(),
-        status: "pending"
+        status: "pending",
       };
+
       appendMessages([optimisticUserMessage]);
       appendMessages([assistantTypingMessage], -1);
 
-
-      queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
-        ...old,
-        optimisticUserMessage,
-      ]);
+      queryClient.setQueryData<ChatMessage[]>(
+        ["chatMessages", sessionId, settings.userName],
+        (old = []) => [...old, optimisticUserMessage]
+      );
 
       return { previous };
     },
 
-    onSuccess: (data, _input, _context) => {
+    onSuccess: (data) => {
       if (!sessionId || !settings.userName) return;
 
-      const assistantMessage = {
+      const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),
+        key: crypto.randomUUID(),
         role: "assistant",
         content: data.content || "(No response)",
         session_id: sessionId,
         created_at: new Date().toISOString(),
-        status: 'sent'
+        status: "sent",
       };
 
-      //replaceMessageAt(-1, assistantMessage)
-      //replaceTypingDots(-1, assistantMessage)
-      mapMessages(msg => {
-        return (msg.status === "pending"
-          ? { ...msg, ...assistantMessage }
-          : msg
-        )
-      }
+      mapMessages((msg) => (msg.status === "pending" ? { ...msg, ...assistantMessage } : msg));
+
+      queryClient.setQueryData<ChatMessage[]>(
+        ["chatMessages", sessionId, settings.userName],
+        (old = []) => [...old, assistantMessage]
       );
-      //replaceMessageContentAt(-1, assistantMessage)
-      queryClient.setQueryData(["chatMessages", sessionId, settings.userName], (old: any[] = []) => [
-        ...old,
-        assistantMessage,
-      ]);
     },
 
-    onError: (err, input) => {
+    onError: (err) => {
       if (!sessionId || !settings.userName) return;
-      if (err?.name === "AbortError") {
-        // Optionally handle as "cancelled" (show nothing, or a special UI)
-        return;
-      }
+      if (err?.name === "AbortError") return;
 
-      const errorMessage = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: "",
-        session_id: sessionId,
-        created_at: new Date().toISOString(),
-        status: "failed"
-      };
-      queryClient.setQueryData(
+      queryClient.setQueryData<ChatMessage[]>(
         ["chatMessages", sessionId, settings.userName],
-        (old: any[] = []) =>
+        (old = []) =>
           old.map((msg, i, arr) =>
             i === arr.length - 1 && msg.role === "user" && !msg.status
               ? { ...msg, status: "failed" }
@@ -143,3 +154,4 @@ export function useChatActions(appendMessages, replaceMessageAt, replaceTypingDo
     stop,
   };
 }
+

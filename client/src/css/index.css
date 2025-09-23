@@ -4,6 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-chat: 51rem;  /* 760px */
+  --breakpoint-chatsidebar: 51rem;  /* Chat window and sidebar*/
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

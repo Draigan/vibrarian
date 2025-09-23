@@ -72,7 +72,7 @@ export default function ChatBody({ virtuoso, handleRetry }: {
 
   return (
     <div
-      className="w-[760px]"
+      className="w-full px-3 chat:px-0 chat:w-[760px]"
       style={{
         display: "flex",
         height: "calc(100vh - 205px)",

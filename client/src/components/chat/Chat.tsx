@@ -32,7 +32,7 @@ export function Chat() {
   }
 
   return (
-    <div className="flex w-full h-full justify-center">
+    <div className="flex w-full h-screen overflow-hidden justify-center">
       <div className="flex flex-col items-center justify-center h-full w-full relative">
         <ChatHeader
           handleSwitchSession={handleSwitchSession}
@@ -40,14 +40,11 @@ export function Chat() {
           sessionId={sessionId}
         />
         <ChatBody virtuoso={virtuosoRef} />
-        <div className="h-34 bg-card" />
-        <div className="absolute bottom-0 ">
-          <ChatFooter
-            sendMessage={sendMessage}
-            assistantIsTyping={isMessagesLoading === "pending"}
-            stop={stop}
-          />
-        </div>
+        <ChatFooter
+          sendMessage={sendMessage}
+          assistantIsTyping={isMessagesLoading === "pending"}
+          stop={stop}
+        />
       </div>
     </div>
   );

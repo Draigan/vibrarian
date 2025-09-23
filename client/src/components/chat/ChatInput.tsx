@@ -17,7 +17,7 @@ export default function ChatInput({
   const formRef = React.useRef<HTMLFormElement>(null);
   const [input, setInput] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>)=> {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   }
 
@@ -41,8 +41,8 @@ export default function ChatInput({
   return (
     <form
       ref={formRef}
-      onSubmit={handleOnSubmit} 
-      className="flex gap-3 items-center w-full p-3"
+      onSubmit={handleOnSubmit}
+      className="flex flex-col w-full p-3 gap-0"
     >
       <ChatTextArea
         value={input}
@@ -51,7 +51,7 @@ export default function ChatInput({
         placeholder="Ask Vibrarian"
         rows={2}
       />
-      <div className="flex justify-center items-center">
+      <div className="flex justify-end items-center">
         {!isLoading && (
           <button
             type="submit"

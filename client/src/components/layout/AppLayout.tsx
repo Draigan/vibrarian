@@ -14,6 +14,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { useUserSettings } from "@/context/UserSettingsContext";
+import { MobileMenu } from "@/components/MobileMenu";
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -42,17 +43,18 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="w-screen h-screen bg-background text-foreground relative">
+      <MobileMenu navLinks={navLinks} />
 
       {/* Floating Sidebar Overlay */}
       <aside
         className={`
-          fixed top-0 left-0 h-full
-          flex flex-col items-center border-r border-border bg-card
-          transition-all duration-300 ease-in-out
-          ${collapsed ? "w-12" : "w-64"}
-          z-50
-          p-0
-        `}
+    hidden chat:flex chat:flex-col chat:items-center
+    fixed top-0 left-0 h-full
+    border-r border-border bg-card
+    transition-all duration-300 ease-in-out
+    ${collapsed ? "sm:w-12" : "sm:w-64"}
+    z-50 p-0
+  `}
         style={{ minWidth: 56, maxWidth: 256 }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -156,7 +158,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </aside>
 
       {/* Main content fills full width, sits under sidebar */}
-      <main className="w-full pl-14  h-full overflow-auto ">
+      <main className="w-full chat:pl-14  h-full overflow-auto ">
         {children}
       </main>
     </div>
