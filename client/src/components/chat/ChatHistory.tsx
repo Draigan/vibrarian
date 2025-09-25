@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -20,10 +20,8 @@ type SessionType = {
 type Props = {
   sessions: SessionType[];
   sessionId: string | null;
-  setSessionId: (id: string) => void;
-  loadSessions: () => void;
   loading: boolean;
-  virtuoso: any;
+  handleSwitchSession: (id: string) => void;
 }
 
 export default function ChatHistory({ sessionId, sessions, handleSwitchSession, loading }: Props) {

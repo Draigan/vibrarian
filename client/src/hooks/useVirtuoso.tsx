@@ -1,29 +1,45 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback } from "react";
 import type { VirtuosoMessageListMethods } from "@virtuoso.dev/message-list";
 
-// T is your message type (e.g., Message)
+// ----------------------
+// Type: HasRole
+// ----------------------
+// Minimal shape for messages used in Virtuoso list.
+// This allows extending with role/status (user, assistant, pending, etc.)
 export interface HasRole {
   role?: string;
   status?: string;
 }
 
+// ----------------------
+// Hook: useVirtuoso
+// ----------------------
+//
+// Provides a collection of helper methods to manipulate messages
+// inside a VirtuosoMessageList (append, replace, delete, etc.).
+// Keeps a ref to Virtuoso so you can update the underlying list.
+//
 export function useVirtuoso<T extends HasRole>() {
+  // Reference to VirtuosoMessageList instance
   const virtuosoRef = useRef<VirtuosoMessageListMethods<T>>(null);
 
+  // ----------------------
   // Replace all messages
+  // ----------------------
   const replaceMessages = useCallback(
     (
       messages: T[],
       opts?: {
         scrollToTop?: boolean;
         scrollToBottom?: boolean;
-        initialLocation?: any; // for custom scroll control
+        initialLocation?: any; // custom scroll control
         [key: string]: any;
       }
     ) => {
       let virtuosoOpts: any = { purgeItemSizes: true };
 
-      // Priority: explicit initialLocation > scrollToTop > scrollToBottom > nothing
+      // Scroll options priority:
+      // explicit location > scroll to top > scroll to bottom
       if (opts?.initialLocation) {
         virtuosoOpts.initialLocation = opts.initialLocation;
       } else if (opts?.scrollToTop) {
@@ -45,61 +61,62 @@ export function useVirtuoso<T extends HasRole>() {
     []
   );
 
+  // ----------------------
+  // Utility: resolve negative index
+  // ----------------------
+  // Allows using negative indexing (e.g. -1 = last item)
   const getResolvedIndex = useCallback((index: number) => {
-    // Pull current messages from Virtuoso's internal data
     const messages = virtuosoRef.current?.data.get?.() || [];
     let resolvedIndex = index;
 
     if (index < 0) {
       resolvedIndex = messages.length + index;
     }
-    // Clamp to valid range (0 to messages.length - 1)
+    // clamp to valid range
     if (resolvedIndex < 0) resolvedIndex = 0;
     if (resolvedIndex >= messages.length) resolvedIndex = messages.length - 1;
 
     return resolvedIndex;
   }, []);
 
-const replaceMessageContentAt = useCallback(
-  (index: number, newContent: string) => {
+
+  // ----------------------
+  // Append messages
+  // ----------------------
+  // Adds messages to the list. Supports appending with scroll alignment.
+const appendMessages = useCallback(
+  (msgs: T[], index?: number) => {
     if (!virtuosoRef.current) return;
 
-    const resolvedIndex = getResolvedIndex(index);
-
-    virtuosoRef.current.data.update((oldMessages: T[]) => {
-      return oldMessages.map((msg, i) =>
-        i === resolvedIndex ? { ...msg, content: newContent } : msg
-      );
-    });
+    if (index !== undefined) {
+      const resolved = getResolvedIndex(index); // always returns a number
+      virtuosoRef.current.data.append(msgs, () => ({
+        index: resolved,
+        align: "start",
+        behavior: "smooth",
+      }));
+    } else {
+      virtuosoRef.current.data.append(msgs);
+    }
   },
   [virtuosoRef, getResolvedIndex]
 );
-
-  const appendMessages = useCallback((msgs: T[],index: number) => {
-    if (!virtuosoRef.current) return;
-  if (index !== undefined){
-    index = getResolvedIndex(index);
-    virtuosoRef.current?.data.append(msgs, () => ({
-      index: index,
-      align: "start",
-      behavior: "smooth",
-    }));
-    } else {
-    virtuosoRef.current?.data.append(msgs);
-    }
-  }, [virtuosoRef]);
-
-  // Delete a message at the given index (supports negative indexing)
+  // ----------------------
+  // Delete message at index
+  // ----------------------
   const deleteMessageAt = useCallback((index: number) => {
     const messages = virtuosoRef.current?.data.get() || [];
     const len = messages.length;
-    console.log("[deleteMessageAt] Current messages:", messages.map(m => m?.content || m?.id));
+    console.log(
+      "[deleteMessageAt] Current messages:",
+      messages.map((m) => m?.content || m?.id)
+    );
     if (!len) {
       console.warn("[deleteMessageAt] No messages to delete.");
       return;
     }
 
-    // Normalize negative index
+    // normalize negative index
     const realIndex = index < 0 ? len + index : index;
     if (realIndex < 0 || realIndex >= len) {
       console.warn(`[deleteMessageAt] Index out of bounds: ${realIndex}`);
@@ -107,21 +124,28 @@ const replaceMessageContentAt = useCallback(
     }
 
     const deleted = messages[realIndex];
-    const newMessages = [...messages.slice(0, realIndex), ...messages.slice(realIndex + 1)];
+    const newMessages = [
+      ...messages.slice(0, realIndex),
+      ...messages.slice(realIndex + 1),
+    ];
 
     console.log(`[deleteMessageAt] Deleting message at index ${realIndex}:`, deleted);
-    console.log("[deleteMessageAt] New messages after delete:", newMessages.map(m => m?.content || m?.id));
+    console.log(
+      "[deleteMessageAt] New messages after delete:",
+      newMessages.map((m) => m?.content || m?.id)
+    );
 
     virtuosoRef.current?.data.replace(newMessages);
   }, []);
 
-  // Replace a message at the given index (supports negative indexing)
+  // ----------------------
+  // Replace message at index
+  // ----------------------
   const replaceMessageAt = useCallback((index: number, newMessage: T) => {
     const messages = virtuosoRef.current?.data.get() || [];
     const len = messages.length;
     if (!len) return;
 
-    // Normalize negative index
     const realIndex = index < 0 ? len + index : index;
     if (realIndex < 0 || realIndex >= len) return;
 
@@ -129,14 +153,17 @@ const replaceMessageContentAt = useCallback(
     newMessages[realIndex] = newMessage;
     virtuosoRef.current?.data.replace(newMessages);
   }, []);
-  //
+
+  // ----------------------
+  // Replace "typing dots" placeholder at index
+  // ----------------------
+  // Only replaces if message role is assistant.
   const replaceTypingDots = useCallback((index: number, newMessage: T) => {
-    if (newMessage.role !== 'assistant') return;
+    if (newMessage.role !== "assistant") return;
     const messages = virtuosoRef.current?.data.get() || [];
     const len = messages.length;
     if (!len) return;
 
-    // Normalize negative index
     const realIndex = index < 0 ? len + index : index;
     if (realIndex < 0 || realIndex >= len) return;
 
@@ -145,24 +172,34 @@ const replaceMessageContentAt = useCallback(
     virtuosoRef.current?.data.replace(newMessages);
   }, []);
 
-const updateMessageAtIndex = (index: number, partial: Partial<T>) => {
-  if (!virtuosoRef.current) return;
-  const arr = virtuosoRef.current.data.get();
-  if (index < 0 || index >= arr.length) return;
-  const newArr = arr.map((msg, i) => 
-    i === index ? { ...msg, ...partial } : msg
-  );
-  virtuosoRef.current.data.replace(newArr);
-};
-const mapMessages = useCallback(
-  (mapper: (msg: T) => T) => {
+  // ----------------------
+  // Update partial fields at index
+  // ----------------------
+  const updateMessageAtIndex = (index: number, partial: Partial<T>) => {
     if (!virtuosoRef.current) return;
-    virtuosoRef.current.data.map(mapper);
-  },
-  [virtuosoRef]
-);
+    const arr = virtuosoRef.current.data.get();
+    if (index < 0 || index >= arr.length) return;
+    const newArr = arr.map((msg, i) =>
+      i === index ? { ...msg, ...partial } : msg
+    );
+    virtuosoRef.current.data.replace(newArr);
+  };
 
+  // ----------------------
+  // Map over messages
+  // ----------------------
+  // Applies a transformation to every message in the list
+  const mapMessages = useCallback(
+    (mapper: (msg: T) => T) => {
+      if (!virtuosoRef.current) return;
+      virtuosoRef.current.data.map(mapper);
+    },
+    [virtuosoRef]
+  );
 
+  // ----------------------
+  // Expose API
+  // ----------------------
   return {
     virtuosoRef,
     replaceMessages,

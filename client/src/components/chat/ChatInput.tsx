@@ -49,9 +49,9 @@ export default function ChatInput({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder="Ask Vibrarian"
-        rows={2}
+        rows={1}
       />
-      <div className="flex justify-end items-center">
+      <div className="flex justify-end gap-0 items-center">
         {!isLoading && (
           <button
             type="submit"

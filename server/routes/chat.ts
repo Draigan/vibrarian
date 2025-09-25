@@ -26,7 +26,7 @@ router.post("/send-message", requireAuth, async (req, res) => {
     }
     console.log("User: ", userMessage);
     // Forward the message to n8n
-    const n8nResponse = await fetch(`${N8N_ENDPOINT}/webhook/vibrarian`, {
+    const n8nResponse = await fetch(`${N8N_ENDPOINT}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: userMessage, sessionId  }),

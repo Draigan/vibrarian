@@ -3,18 +3,31 @@ import ChatHistory from "./ChatHistory";
 import { Plus } from "lucide-react";
 
 
+type Props = {
+  sessions: SessionType[];
+  sessionId: string | null;
+  loading: boolean;
+  handleSwitchSession: (id: string) => void;
+}
+
+type SessionType = {
+  id: string;
+  title: string;
+  created_at: string;
+};
+
 export function ChatHeader({
   handleSwitchSession,
   loading,
   sessions,
   sessionId,
-}: any) {
+}: Props) {
 
   return (
     <>
       <div className="flex justify-between w-[760px]  h-[57px]">
 
-        <div className="hidden chat:w-[760px]">
+        <div className="chat:w-[760px] flex justify-end">
           <Button
             variant="outline"
             onClick={() => {

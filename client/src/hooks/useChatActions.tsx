@@ -1,37 +1,39 @@
-import { useMutation, useQueryClient, type UseMutateFunction } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useRef } from "react";
 import { useUserSettings } from "@/context/UserSettingsContext";
+import type { ChatMessage } from "@/types/chat";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Shared message type
-export type ChatMessage = {
-  id: string;
-  key: string;
-  role: "user" | "assistant";
-  content: string;
-  session_id: string;
-  created_at: string;
-  status?: "pending" | "sent" | "failed";
-};
+// ----------------------
+// Shared types
+// ----------------------
 
-// API response type
+
+// Response format expected from /api/send-message
 type SendMessageResponse = {
-  content: string;
-  logout?: boolean;
-  error?: string;
+  content: string;   // assistant's reply text
+  logout?: boolean;  // flag if backend requires logout (e.g. token expired)
+  error?: string;    // optional error message from server
 };
 
+// Helper function types to manipulate message state
 type AppendMessages = (msgs: ChatMessage[], index?: number) => void;
-type ReplaceMessageAt = (index: number, msg: ChatMessage) => void;
-type ReplaceTypingDots = (index: number, msg: ChatMessage) => void;
 type MapMessages = (fn: (msg: ChatMessage) => ChatMessage) => void;
 
+// ----------------------
+// Hook: useChatActions
+// ----------------------
+//
+// Provides everything needed to:
+// - send a message to the backend
+// - manage optimistic UI updates
+// - update cache with new/failed/pending messages
+// - abort in-flight requests if needed
+//
 export function useChatActions(
   appendMessages: AppendMessages,
-  replaceMessageAt: ReplaceMessageAt,
-  replaceTypingDots: ReplaceTypingDots,
   mapMessages: MapMessages
 ) {
   const { logout } = useAuth();
@@ -41,14 +43,22 @@ export function useChatActions(
 
   const sessionId = settings.chatSession;
 
-  // Cancel send message
+  // ----------------------
+  // Cancel current request
+  // ----------------------
   const stop = () => {
     abortControllerRef.current?.abort();
   };
 
+  // ----------------------
+  // Mutation: send message
+  // ----------------------
   const mutation = useMutation<SendMessageResponse, Error, string>({
+    // Actual API call
     mutationFn: async (message: string) => {
+      // prepare abort controller for cancellation
       abortControllerRef.current = new AbortController();
+
       const res = await fetch(`${BASE_URL}/api/send-message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -56,13 +66,15 @@ export function useChatActions(
           sessionId,
           message: { role: "user", content: message },
         }),
-        credentials: "include",
+        credentials: "include", // send cookies for auth
         signal: abortControllerRef.current.signal,
       });
 
       if (!res.ok) throw new Error("Failed to send message");
 
       const data: SendMessageResponse = await res.json();
+
+      // handle forced logout
       if (data.logout) {
         console.log("Logging out (from useChatActions)", data.error);
         logout();
@@ -70,12 +82,25 @@ export function useChatActions(
       return data;
     },
 
+    // ----------------------
+    // Optimistic update before request completes
+    // ----------------------
     onMutate: async (message) => {
       if (!sessionId || !settings.userName) return;
 
-      await queryClient.cancelQueries(["chatMessages", sessionId, settings.userName]);
-      const previous = queryClient.getQueryData<ChatMessage[]>(["chatMessages", sessionId, settings.userName]);
+      // cancel any outgoing fetches for this query
+      await queryClient.cancelQueries({
+        queryKey: ["chatMessages", sessionId, settings.userName],
+      });
 
+      // snapshot previous cache (for rollback if needed)
+      const previous = queryClient.getQueryData<ChatMessage[]>([
+        "chatMessages",
+        sessionId,
+        settings.userName,
+      ]);
+
+      // optimistic user message
       let id = crypto.randomUUID();
       const optimisticUserMessage: ChatMessage = {
         id,
@@ -86,6 +111,7 @@ export function useChatActions(
         created_at: new Date().toISOString(),
       };
 
+      // optimistic assistant "typing…" placeholder
       id = crypto.randomUUID();
       const assistantTypingMessage: ChatMessage = {
         id,
@@ -97,9 +123,11 @@ export function useChatActions(
         status: "pending",
       };
 
+      // add both to UI immediately
       appendMessages([optimisticUserMessage]);
       appendMessages([assistantTypingMessage], -1);
 
+      // update cache with optimistic user message
       queryClient.setQueryData<ChatMessage[]>(
         ["chatMessages", sessionId, settings.userName],
         (old = []) => [...old, optimisticUserMessage]
@@ -108,6 +136,9 @@ export function useChatActions(
       return { previous };
     },
 
+    // ----------------------
+    // Success: replace pending assistant message with real reply
+    // ----------------------
     onSuccess: (data) => {
       if (!sessionId || !settings.userName) return;
 
@@ -121,18 +152,26 @@ export function useChatActions(
         status: "sent",
       };
 
-      mapMessages((msg) => (msg.status === "pending" ? { ...msg, ...assistantMessage } : msg));
+      // replace the pending message in the UI
+      mapMessages((msg) =>
+        msg.status === "pending" ? { ...msg, ...assistantMessage } : msg
+      );
 
+      // push assistant message to cache
       queryClient.setQueryData<ChatMessage[]>(
         ["chatMessages", sessionId, settings.userName],
         (old = []) => [...old, assistantMessage]
       );
     },
 
+    // ----------------------
+    // Error: mark last user message as failed
+    // ----------------------
     onError: (err) => {
       if (!sessionId || !settings.userName) return;
-      if (err?.name === "AbortError") return;
+      if (err?.name === "AbortError") return; // user manually aborted
 
+      // update last user message with failed status
       queryClient.setQueryData<ChatMessage[]>(
         ["chatMessages", sessionId, settings.userName],
         (old = []) =>
@@ -144,11 +183,15 @@ export function useChatActions(
       );
     },
 
+    // ----------------------
+    // Always cleanup after request
+    // ----------------------
     onSettled: () => {
       abortControllerRef.current = null;
     },
   });
 
+  // expose mutation helpers + stop()
   return {
     ...mutation,
     stop,

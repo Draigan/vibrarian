@@ -4,14 +4,13 @@ import {
 } from "@virtuoso.dev/message-list";
 import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "./ChatBubble";
 import { TriangleAlert } from "lucide-react";
+import type { ChatMessage } from "@/types/chat";
 
-// Message type
-interface Message {
-  key: string;
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  status?: "pending" | "failed";
+
+type Props = {
+  virtuoso: React.RefObject<any>;
+  handleRetry: (msg: ChatMessage) => void;
+  messages: ChatMessage[] | [];
 }
 
 const ItemContent = ({
@@ -19,10 +18,10 @@ const ItemContent = ({
   isUser,
   handleRetry,
 }: {
-  msg: Message;
+  msg: ChatMessage;
   isUser: boolean;
   isLastMessage: boolean;
-  handleRetry: (msg: Message) => void;
+  handleRetry: (msg: ChatMessage) => void;
 }) => (
   <div className="flex justify-center ">
     <div className="chat-size-default">
@@ -38,7 +37,7 @@ const ItemContent = ({
             variant={isUser ? "sent" : "received"}
             isLoading={msg.status === "pending"}
           >
-              {msg.content}
+            {msg.content}
 
             {msg.status === "failed" && (
               <span className="ml-2 flex items-center gap-1 text-red-500 text-xs">
@@ -60,16 +59,13 @@ const ItemContent = ({
   </div>
 );
 
-export default function ChatBody({ virtuoso, handleRetry }: {
-  virtuoso: React.RefObject<any>,
-  handleRetry: (msg: Message) => void,
-}) {
-
-  // Get messages from virtuoso
-  const messages: Message[] = virtuoso.current?.data.get() || [];
-  const lastId = messages[messages.length - 1]?.id;
-
-
+export default function ChatBody(
+  {
+    virtuoso,
+    handleRetry,
+  }: Props
+) {
+  const messages: ChatMessage[] = virtuoso.current?.data.get() || [];
   return (
     <div
       className="w-full px-3 chat:px-0 chat:w-[760px]"
@@ -80,12 +76,13 @@ export default function ChatBody({ virtuoso, handleRetry }: {
       }}
     >
       <VirtuosoMessageListLicense licenseKey="">
-        <VirtuosoMessageList<Message, null>
+        <VirtuosoMessageList<ChatMessage, null>
           ref={virtuoso}
           style={{ flex: 1 }}
-          computeItemKey={({ data }) => data.key}
+          computeItemKey={({ data }) => data.key ?? data.id}
           ItemContent={({ data }) => {
             const isUser = data.role === "user";
+            const lastId = messages[messages.length - 1]?.id;
             const isLastMessage = data.id === lastId;
             return (
               <ItemContent

@@ -8,23 +8,26 @@ import { AppLayout } from './components/layout/AppLayout.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UserSettingsProvider } from './context/UserSettingsContext.tsx';
+import { ChatProvider } from './context/ChatContext.tsx';
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <UserSettingsProvider>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <AppLayout>
-              <App />
-            </AppLayout>
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ThemeProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <ChatProvider>
+                <AppLayout>
+                  <App />
+                </AppLayout>
+              </ChatProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ThemeProvider>
     </UserSettingsProvider>
   </StrictMode>
 )

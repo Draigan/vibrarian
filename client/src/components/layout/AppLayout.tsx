@@ -15,15 +15,16 @@ import {
 } from "lucide-react";
 import { useUserSettings } from "@/context/UserSettingsContext";
 import { MobileMenu } from "@/components/MobileMenu";
+import { ChatSideHistory } from "../chat/ChatSideHistory";
+import { SidebarUserMenu } from "./SidebarUserMenu";
 
 type AppLayoutProps = {
   children: ReactNode;
-}
+};
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { logout } = useAuth();
-
-  const { settings } = useUserSettings()
+  const { settings } = useUserSettings();
   const navigate = useNavigate();
 
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
@@ -37,39 +38,44 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const navLinks = [
     { to: "/", label: "Home", icon: <Home size={20} />, show: true },
-    { to: "/chat", label: "Chat", icon: <MessageCircle size={20} />, show: !!settings.userName },
-    { to: "/transcripts", label: "Transcripts", icon: <FileText size={20} />, show: !!settings.userName },
+    {
+      to: "/chat",
+      label: "New Chat",
+      icon: <MessageCircle size={20} />,
+      show: !!settings.userName,
+    },
+    {
+      to: "/transcripts",
+      label: "Transcripts",
+      icon: <FileText size={20} />,
+      show: !!settings.userName,
+    },
   ];
 
   return (
     <div className="w-screen h-screen bg-background text-foreground relative">
       <MobileMenu navLinks={navLinks} />
 
-      {/* Floating Sidebar Overlay */}
+      {/* Sidebar */}
       <aside
         className={`
-    hidden chat:flex chat:flex-col chat:items-center
-    fixed top-0 left-0 h-full
-    border-r border-border bg-card
-    transition-all duration-300 ease-in-out
-    ${collapsed ? "sm:w-12" : "sm:w-64"}
-    z-50 p-0
-  `}
+          hidden chat:flex chat:flex-col
+          fixed top-0 left-0 h-full
+          border-r border-border bg-card
+          transition-all duration-300 ease-in-out
+          ${collapsed ? "sm:w-12" : "sm:w-64"}
+          z-50 p-0
+        `}
         style={{ minWidth: 56, maxWidth: 256 }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
         {/* Logo/Header */}
-        <div
-          className={`
-            h-14 w-full flex items-center border-b border-border px-2
-            transition-all duration-300 overflow-hidden
-          `}
-        >
+        <div className="h-14 w-full flex items-center border-b border-border px-2">
           <img
             src="/vibrarian.jpg"
             alt="Logo"
-            className={`rounded-full object-cover border-2 border-primary bg-background transition-all duration-300 w-8 h-8`}
+            className="rounded-full object-cover border-2 border-primary bg-background w-8 h-8"
           />
           <span
             className={`
@@ -77,63 +83,41 @@ export function AppLayout({ children }: AppLayoutProps) {
               transition-opacity duration-300
               ${collapsed ? "opacity-0" : "opacity-100"}
             `}
-            style={{
-              transitionDelay: collapsed ? "0ms" : "100ms",
-            }}
+            style={{ transitionDelay: collapsed ? "0ms" : "100ms" }}
           >
             Vibrarian
           </span>
         </div>
 
-        {/* Nav */}
+        {/* Top nav */}
         <nav className="flex flex-col w-full">
-          {navLinks.filter((l) => l.show).map((link) => (
-            <SidebarNavButton
-              key={link.to}
-              to={link.to}
-              icon={link.icon}
-              collapsed={collapsed}
-              as="link"
-            >
-              {link.label}
-            </SidebarNavButton>
-          ))}
+          {navLinks
+            .filter((l) => l.show)
+            .map((link) => (
+              <SidebarNavButton
+                key={link.to}
+                to={link.to}
+                icon={link.icon}
+                collapsed={collapsed}
+                as="link"
+              >
+                {link.label}
+              </SidebarNavButton>
+            ))}
         </nav>
 
-        {/* Spacer to push logout/sign in button and mode toggle to bottom */}
-        <div className="flex-1" />
-
-        {/* Logout/Sign In link */}
-        <div className="w-full flex flex-col">
-          {settings.userName ? (
-            <SidebarNavButton
-              as="button"
-              onClick={handleLogout}
-              icon={<LogOut size={20} />}
-              collapsed={collapsed}
-            >
-              Sign Out
-            </SidebarNavButton>
-          ) : (
-            <SidebarNavButton
-              as="link"
-              to="/login"
-              icon={<LogIn size={20} />}
-              collapsed={collapsed}
-            >
-              Sign In
-            </SidebarNavButton>
-          )}
+        {/* Scrollable chat history */}
+        <div className="flex-1 min-h-0 overflow-y-auto w-full">
+          <ChatSideHistory collapsed={collapsed}/>
         </div>
 
+        {/* Footer: User menu */}
+        <SidebarUserMenu collapsed={collapsed} setCollapsed={setManuallyCollapsed} />
 
-        {/* Divider & Mode toggle */}
         <div className="w-full px-2 pb-2">
-          <hr className="w-full border-t border-border mb-3" />
-          <div className="flex">
-            <ModeToggle />
-          </div>
+          <hr className="w-full border-t border-border mb-0" />
         </div>
+
 
         {/* Collapse/Expand Button */}
         <Button
@@ -157,8 +141,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         </Button>
       </aside>
 
-      {/* Main content fills full width, sits under sidebar */}
-      <main className="w-full chat:pl-14  h-full overflow-auto ">
+      {/* Main content */}
+      <main className="w-full chat:pl-14 h-full overflow-auto">
         {children}
       </main>
     </div>
