@@ -1,73 +1,67 @@
-import { useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from "../ui/button";
-import { SessionButton } from "../SessionButton";
-import { LoadingSpinner } from "../ui/loading-spinner";
-import { History } from "lucide-react";
+/** components/chat/ChatHistory.tsx
+ *
+ * Sidebar list of chat sessions.
+ * - Displays a scrollable list of ChatHistoryItem components.
+ * - Shows loading state and empty state.
+ * - Collapses/expands smoothly based on sidebar state.
+ */
 
-type SessionType = {
-  id: string;
-  title: string;
-  created_at: string;
-};
+import { useChat } from "@/context/ChatContext";
+import { ChatHistoryItem } from "./ChatHistoryItem";
 
 type Props = {
-  sessions: SessionType[];
-  sessionId: string | null;
-  loading: boolean;
-  handleSwitchSession: (id: string) => void;
-}
+  collapsed: boolean;
+  setSidebarLocked: (locked: boolean) => void;
+};
 
-export default function ChatHistory({ sessionId, sessions, handleSwitchSession, loading }: Props) {
-
-  const [open, setOpen] = useState(false);
+export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
+  const {
+    sessions,
+    sessionId,
+    sessionsDataLoading: loading,
+    switchSession,
+  } = useChat();
 
   return (
-    <Sheet open={open} onOpenChange={(val) => {
-      setOpen(val);
-    }}>
-      <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          className="hover:!bg-accent border-0" >
-          <History className="w-5 h-5" />
-        </Button>
-      </SheetTrigger>
+    <div
+      className={`
+        flex flex-col h-full
+        transition-all duration-300
+        ${collapsed ? "opacity-0 pointer-events-none" : "opacity-100"}
+      `}
+      style={{ transitionProperty: "opacity, transform" }}
+    >
+      {/* Title */}
+      <div className="px-3 py-2 border-b border-border text-sm font-semibold shrink-0">
+        Chats
+      </div>
 
-      <SheetContent side="left" className="w-[400px] sm:w-[300px]">
-        <SheetHeader>
-          <SheetTitle>Chat History</SheetTitle>
-        </SheetHeader>
+      {/* Scrollable list */}
+      <div className="h-full overflow-y-auto">
+        {loading && (
+          <div className="px-3 py-2 text-xs text-muted-foreground">
+            Loading…
+          </div>
+        )}
 
-        <div className="mt-4 flex flex-col gap-2">
-          {loading ? (
-            <div className="flex justify-center items-center h-full">
-              <LoadingSpinner />
-            </div>
-          ) : (
-            sessions.map((item: SessionType) => {
-              const formatted = new Date(item.created_at).toLocaleString();
-              return (
-                <SessionButton
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  timestamp={formatted}
-                  messageCount={5}
-                  isActive={item.id === sessionId}
-                  onClick={() => handleSwitchSession(item.id)}
-                />
-              );
-            })
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+        {sessions.map((s: { id: string; title?: string }) => (
+          <ChatHistoryItem
+            key={s.id}
+            id={s.id}
+            title={s.title}
+            active={s.id === sessionId}
+            onClick={() => switchSession(s.id)}
+            setSidebarLocked={setSidebarLocked}
+          />
+        ))}
+
+        {!loading && sessions.length === 0 && (
+          <div className="px-3 py-2 text-xs text-muted-foreground">
+            No chats yet
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
+

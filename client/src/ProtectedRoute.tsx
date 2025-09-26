@@ -1,9 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
 import { useUserSettings } from './context/UserSettingsContext';
 
 const ProtectedRoute: React.FC = () => {
-  const auth = useAuth();
   const {settings} = useUserSettings();
 
   if (!settings) return null;

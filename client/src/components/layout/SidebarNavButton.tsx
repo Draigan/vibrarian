@@ -1,5 +1,6 @@
 import  { type ReactNode, type ButtonHTMLAttributes } from "react";
 import { Link } from "react-router-dom";
+import { useChat } from "@/context/ChatContext";
 
 type SidebarNavButtonProps =
   | ({
@@ -25,6 +26,8 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
     collapsed,
     ...rest
   } = props as any;
+
+  const {switchSession} = useChat();
 
   const className = `
     group flex items-center w-full rounded-md px-2 h-12 mb-1
@@ -68,7 +71,7 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
   // as === "link"
   const { to, ...linkRest } = rest as React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string };
   return (
-     <div className="px-2 py-1"> 
+     <div className="px-2 py-1" onClick={()=> switchSession("new")}> 
     <Link
       to={to}
       className={className}

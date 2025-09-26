@@ -1,10 +1,17 @@
+/** components/transcript/TranscriptBlock.tsx
+ *
+ * Renders a single transcript block with speaker info, timestamp, and editable text.
+ * - Shows edit/copy actions only when hovering over the block.
+ * - Supports editing mode with save/cancel handlers.
+ * - Displays a "Copied!" message when text is copied.
+ * - Adds a colored border on the left to visually distinguish the speaker.
+ */
+
 import { TranscriptBlockActions } from "./TranscriptBlockActions";
 import TranscriptBlockText from "./TranscriptBlockText";
 import { useState } from "react";
 import type { TranscriptBlock } from "@/types/transcript";
 
-
-// Props for TranscriptBlock
 interface TranscriptBlockProps {
   block: TranscriptBlock;
   color: string;
@@ -38,7 +45,7 @@ export default function TranscriptBlock({
 
   return (
     <div
-      className="max-w-275 rounded-lg p-4 bg-accent mb-3 shadow-sm flex flex-col gap-2 relative"
+      className="max-w-275 rounded-lg p-4 bg-accent mb-3 shadow-sm flex flex-col gap-2 relative group"
       style={{ borderLeft: `4px solid ${color}` }}
     >
       <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground mb-1">
@@ -48,10 +55,9 @@ export default function TranscriptBlock({
           </span>
           <span className="opacity-60">Start: {block.start}</span>
         </div>
-        <TranscriptBlockActions
-          onCopy={handleCopy}
-          onEdit={onStartEdit}
-        />
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <TranscriptBlockActions onCopy={handleCopy} onEdit={onStartEdit} />
+        </div>
       </div>
       <TranscriptBlockText
         value={draft}

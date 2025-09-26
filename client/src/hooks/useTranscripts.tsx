@@ -1,3 +1,9 @@
+/** hooks/useTranscripts.ts
+ *
+ * Fetches all transcripts for the current user from the backend API.
+ * - Uses React Query for caching, re-fetching, and status tracking.
+ * - Returns an array of Transcript objects.
+ */
 import { useQuery } from "@tanstack/react-query";
 import type { Transcript } from "@/types/transcript";
 
@@ -11,8 +17,9 @@ export function useTranscripts() {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch transcripts");
-      const data: {transcripts: Transcript[]} = await res.json();
+      const data: { transcripts: Transcript[] } = await res.json();
       return data.transcripts;
     },
   });
 }
+

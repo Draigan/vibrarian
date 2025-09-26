@@ -2,7 +2,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   type ReactNode,
 } from "react";
 import { useVirtuoso } from "@/hooks/useVirtuoso";
@@ -17,7 +16,8 @@ type ChatContextType = {
   appendMessages: (msgs: ChatMessage[]) => void;
   mapMessages: (fn: (msg: ChatMessage) => ChatMessage) => void;
   sendMessage: (msg: string) => void;
-  stop: () => void;
+  handleAbortMessage: () => void;
+  handleRetry: (msg: ChatMessage) => void;
   sessions: any[];
   sessionId: string;
   setSessionId: (id: string) => void;
@@ -25,6 +25,7 @@ type ChatContextType = {
   messages: ChatMessage[];
   status: string;
   sessionsDataLoading: boolean;
+  assistantIsTyping: boolean;
 };
 
 const ChatContext = createContext<ChatContextType | null>(null);
@@ -32,26 +33,64 @@ const ChatContext = createContext<ChatContextType | null>(null);
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   // Manage Virtuoso message list
   const { virtuosoRef, replaceMessages, appendMessages, mapMessages } =
-    useVirtuoso<ChatMessage>();
+    useVirtuoso();
 
   // Actions like send/stop
-  const { mutate: sendMessage, stop } = useChatActions(
+  const { mutate: sendMessage, stop: abortMessage } = useChatActions(
     appendMessages,
     mapMessages
   );
 
   // Sessions and active sessionId
-  const { sessions, sessionId, setSessionId, loading: sessionsDataLoading } = useChatSession();
+  const { sessions, sessionId, setSessionId, loading: sessionsDataLoading } =
+    useChatSession();
 
   // Messages for the active session
-  const { data: messages = [], status, isFetching } = useChatMessages(sessionId);
-  const assistantIsTyping = messages.some((m) => m.status === "pending");
+  const { data: messages = [], status } = useChatMessages(sessionId);
 
+  const allMessages = virtuosoRef.current?.data.get?.() || messages;
+  const assistantIsTyping = allMessages.some(
+    (m: ChatMessage) => m.status === "pending"
+  );
+
+  // ----------------------
+  // Abort: mark pending assistant messages as aborted
+  // ----------------------
+  function handleAbortMessage() {
+    abortMessage();
+
+    const updated = (virtuosoRef.current?.data.get?.() || messages).map(
+      (m: ChatMessage) =>
+        m.role === "assistant" && m.status === "pending"
+          ? { ...m, status: "aborted" }
+          : m
+    );
+
+    replaceMessages(updated);
+  }
+
+  // ----------------------
+  // Retry: find the user message before the failed assistant
+  // ----------------------
+  function handleRetry(msg: ChatMessage) {
+    const all = virtuosoRef.current?.data.get?.() || messages;
+    const idx = all.findIndex((m) => m.id === msg.id);
+
+    if (idx > 0) {
+      const prev = all[idx - 1];
+      if (prev && prev.role === "user" && prev.content) {
+        sendMessage(prev.content); // re-send the original user message
+      }
+    }
+  }
+
+  // ----------------------
   // Switch between sessions
+  // ----------------------
   function switchSession(id: string) {
     if (id === "new") {
-     return replaceMessages([]); 
-    } 
+      return replaceMessages([]);
+    }
     replaceMessages(messages);
     setSessionId(id);
   }
@@ -64,7 +103,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         appendMessages,
         mapMessages,
         sendMessage,
-        stop,
+        handleAbortMessage,
+        handleRetry,
         sessions,
         sessionId,
         setSessionId,

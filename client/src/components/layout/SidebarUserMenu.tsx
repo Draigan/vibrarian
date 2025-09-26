@@ -3,9 +3,6 @@ import { SidebarNavButton } from "@/components/layout/SidebarNavButton";
 import {
   LogOut,
   User,
-  SunMoon,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useUserSettings } from "@/context/UserSettingsContext";

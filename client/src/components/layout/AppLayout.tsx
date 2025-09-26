@@ -1,8 +1,16 @@
+/** components/layout/AppLayout.tsx
+ *
+ * Provides the main application layout with:
+ * - A responsive sidebar (collapsible on hover/click).
+ * - Navigation links (Home, Chat, Transcripts).
+ * - Conditional rendering of chat history (only when logged in).
+ * - A user menu in the footer of the sidebar.
+ * - A top logo/header and collapse/expand button.
+ * - Main content area that adapts alongside the sidebar.
+ */
+
 import { useState, type ReactNode } from "react";
-import { ModeToggle } from "@/components/mode-toggle";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
-import { useAuth } from "@/context/AuthContext";
 import { SidebarNavButton } from "./SidebarNavButton";
 import {
   ChevronLeft,
@@ -10,12 +18,10 @@ import {
   Home,
   MessageCircle,
   FileText,
-  LogIn,
-  LogOut,
 } from "lucide-react";
 import { useUserSettings } from "@/context/UserSettingsContext";
 import { MobileMenu } from "@/components/MobileMenu";
-import { ChatSideHistory } from "../chat/ChatSideHistory";
+import { ChatHistory } from "../chat/ChatHistory";
 import { SidebarUserMenu } from "./SidebarUserMenu";
 
 type AppLayoutProps = {
@@ -23,18 +29,12 @@ type AppLayoutProps = {
 };
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { logout } = useAuth();
   const { settings } = useUserSettings();
-  const navigate = useNavigate();
 
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
   const [hovered, setHovered] = useState(false);
+  const [sidebarLocked, setSidebarLocked] = useState(false);
   const collapsed = manuallyCollapsed && !hovered;
-
-  async function handleLogout() {
-    await logout();
-    navigate("/logout");
-  }
 
   const navLinks = [
     { to: "/", label: "Home", icon: <Home size={20} />, show: true },
@@ -67,8 +67,8 @@ export function AppLayout({ children }: AppLayoutProps) {
           z-50 p-0
         `}
         style={{ minWidth: 56, maxWidth: 256 }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseEnter={() => !sidebarLocked && setHovered(true)}
+        onMouseLeave={() => !sidebarLocked && setHovered(false)}
       >
         {/* Logo/Header */}
         <div className="h-14 w-full flex items-center border-b border-border px-2">
@@ -107,17 +107,23 @@ export function AppLayout({ children }: AppLayoutProps) {
         </nav>
 
         {/* Scrollable chat history */}
-        <div className="flex-1 min-h-0 overflow-y-auto w-full">
-          <ChatSideHistory collapsed={collapsed}/>
-        </div>
+        {settings.userName && (
+          <div className="flex-1 min-h-0 overflow-y-auto w-full">
+            <ChatHistory
+              setSidebarLocked={setSidebarLocked}
+              collapsed={collapsed} />
+          </div>
+        )}
 
         {/* Footer: User menu */}
-        <SidebarUserMenu collapsed={collapsed} setCollapsed={setManuallyCollapsed} />
+        <SidebarUserMenu
+          collapsed={collapsed}
+          setCollapsed={setManuallyCollapsed}
+        />
 
         <div className="w-full px-2 pb-2">
           <hr className="w-full border-t border-border mb-0" />
         </div>
-
 
         {/* Collapse/Expand Button */}
         <Button

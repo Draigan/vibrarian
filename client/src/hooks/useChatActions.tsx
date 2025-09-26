@@ -1,3 +1,14 @@
+/** hooks/useChatActions.ts
+ *
+ * Provides a custom hook for sending chat messages with optimistic updates.
+ * - Uses React Query `useMutation` for server communication.
+ * - Appends optimistic user + assistant "typing" messages immediately.
+ * - Replaces pending messages with real assistant replies on success.
+ * - Marks last user message as failed on error.
+ * - Supports aborting in-flight requests via `AbortController`.
+ * - Keeps React Query cache in sync with UI updates.
+ */
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useRef } from "react";
@@ -25,13 +36,6 @@ type MapMessages = (fn: (msg: ChatMessage) => ChatMessage) => void;
 // ----------------------
 // Hook: useChatActions
 // ----------------------
-//
-// Provides everything needed to:
-// - send a message to the backend
-// - manage optimistic UI updates
-// - update cache with new/failed/pending messages
-// - abort in-flight requests if needed
-//
 export function useChatActions(
   appendMessages: AppendMessages,
   mapMessages: MapMessages
@@ -171,7 +175,12 @@ export function useChatActions(
       if (!sessionId || !settings.userName) return;
       if (err?.name === "AbortError") return; // user manually aborted
 
-      // update last user message with failed status
+      // update Virtuoso messages directly
+      mapMessages((msg) =>
+        msg.status === "pending" && msg.role === "assistant"
+          ? { ...msg, status: "failed", content: msg.content || "" }
+          : msg
+      );
       queryClient.setQueryData<ChatMessage[]>(
         ["chatMessages", sessionId, settings.userName],
         (old = []) =>

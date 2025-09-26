@@ -44,12 +44,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (data.logout) {
           await logout(); // expired/invalid token
         } else {
-          console.log("DATA:",data.role);
           setUser(data.user);
+
+          // 🚀 Overwrite UserSettingsContext (and localStorage) with server values
           updateSettings({
             userName: data.user.email,
             role: data.role,
             theme: data.settings?.theme || "light",
+            chatSession: data.settings?.chatSession ?? crypto.randomUUID(),
           });
         }
       }
@@ -81,8 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return { success: false, message: data.error || "Signup failed" };
       }
 
-      // hydrate from /session after signup
-      await fetchSession();
+      await fetchSession(); // hydrate
       navigate("/");
       return { success: true, message: "Signup successful!" };
     } catch (err) {
@@ -105,8 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error(data.error || "Invalid email or password");
       }
 
-      // hydrate from /session after login
-      await fetchSession();
+      await fetchSession(); // hydrate
       navigate("/");
     } catch (err) {
       console.error("Login error:", err);
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Logout error:", err);
     } finally {
       setUser(null);
-      clearSettings();
+      clearSettings(); // 🔥 reset localStorage + context
     }
   };
 

@@ -1,4 +1,10 @@
-// hooks/useUpdateTranscriptBlock.ts
+/** hooks/useUpdateTranscriptBlock.ts
+ *
+ * Provides a mutation hook to update a specific transcript block by ID.
+ * - Calls the backend API to persist text changes.
+ * - Uses React Query's mutation lifecycle for optimistic updates, error rollback, and cache invalidation.
+ * - Keeps transcript blocks in sync by updating the query cache and refetching after completion.
+ */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -58,4 +64,5 @@ export function useUpdateTranscriptBlock(transcriptId?: string) {
     },
   });
 }
+
 

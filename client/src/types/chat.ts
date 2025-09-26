@@ -6,5 +6,5 @@ export type ChatMessage = {
   content: string;                  
   created_at: string;              
   key?: string;                    
-  status?: "pending" | "sent" | "failed";
+  status?: "pending" | "sent" | "failed" | "aborted";
 };

@@ -1,19 +1,25 @@
+/** components/chat/ChatBody.tsx
+ *
+ * Renders the scrollable list of chat messages using VirtuosoMessageList.
+ * - Delegates rendering of message state (pending, failed, aborted, sent) to ChatBubbleMessage.
+ * - Handles user vs assistant alignment.
+ * - Supports retry for failed messages.
+ */
+
 import {
   VirtuosoMessageList,
   VirtuosoMessageListLicense,
 } from "@virtuoso.dev/message-list";
-import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "./ChatBubble";
-import { TriangleAlert } from "lucide-react";
+import { ChatBubble, ChatBubbleMessage } from "./ChatBubble";
 import type { ChatMessage } from "@/types/chat";
-
 
 type Props = {
   virtuoso: React.RefObject<any>;
   handleRetry: (msg: ChatMessage) => void;
-  messages: ChatMessage[] | [];
-}
+  messages: ChatMessage[];
+};
 
-const ItemContent = ({
+const MessageContent = ({
   msg,
   isUser,
   handleRetry,
@@ -23,35 +29,19 @@ const ItemContent = ({
   isLastMessage: boolean;
   handleRetry: (msg: ChatMessage) => void;
 }) => (
-  <div className="flex justify-center ">
+  <div className="flex justify-center">
     <div className="chat-size-default">
       <div className={`w-full flex ${isUser ? "justify-end" : "justify-start"}`}>
         <ChatBubble key={msg.id} variant={isUser ? "sent" : "received"}>
-          {!isUser && (
-            <ChatBubbleAvatar
-              src="vibrarian.jpg"
-              className="self-start"
-            />
-          )}
           <ChatBubbleMessage
             variant={isUser ? "sent" : "received"}
             isLoading={msg.status === "pending"}
+            status={msg.status}
+            avatarSrc="vibrarian.jpg"
+            showAvatar={!isUser && msg.status !== "failed"}
+            onRetry={msg.status === "failed" ? () => handleRetry(msg) : undefined}
           >
             {msg.content}
-
-            {msg.status === "failed" && (
-              <span className="ml-2 flex items-center gap-1 text-red-500 text-xs">
-                <TriangleAlert className="w-4 h-4" />
-                Failed to send
-                <button
-                  className="ml-1 underline"
-                  onClick={() => handleRetry(msg)}
-                  title="Retry"
-                >
-                  Retry
-                </button>
-              </span>
-            )}
           </ChatBubbleMessage>
         </ChatBubble>
       </div>
@@ -59,12 +49,7 @@ const ItemContent = ({
   </div>
 );
 
-export default function ChatBody(
-  {
-    virtuoso,
-    handleRetry,
-  }: Props
-) {
+export default function ChatBody({ virtuoso, handleRetry }: Props) {
   const messages: ChatMessage[] = virtuoso.current?.data.get() || [];
   return (
     <div
@@ -85,11 +70,11 @@ export default function ChatBody(
             const lastId = messages[messages.length - 1]?.id;
             const isLastMessage = data.id === lastId;
             return (
-              <ItemContent
+              <MessageContent
                 msg={data}
                 isUser={isUser}
                 isLastMessage={isLastMessage}
-                handleRetry={handleRetry}
+                handleRetry={()=> handleRetry(data)}
               />
             );
           }}

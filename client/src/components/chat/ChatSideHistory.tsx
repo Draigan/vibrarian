@@ -3,8 +3,10 @@ import { useChat } from "@/context/ChatContext";
 type Props = {
   collapsed: boolean;
 };
+
+
 export function ChatSideHistory({ collapsed }: Props) {
-  const { sessions, sessionId, setSessionId, loading } = useChat();
+  const { sessions, sessionId, sessionsDataLoading: loading, switchSession  } = useChat();
 
   return (
     <div
@@ -29,7 +31,7 @@ export function ChatSideHistory({ collapsed }: Props) {
         {sessions.map((s: { id: string; title?: string }) => (
           <button
             key={s.id}
-            onClick={() => setSessionId(s.id)}
+            onClick={() => switchSession(s.id)}
             className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent ${
               s.id === sessionId ? "bg-accent font-medium" : ""
             }`}

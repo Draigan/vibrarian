@@ -1,4 +1,11 @@
-// hooks/useTranscriptBlocks.ts
+/** hooks/useTranscriptBlocks.ts
+ *
+ * Fetches transcript blocks for a given transcript ID from the backend API.
+ * - Uses React Query for caching, re-fetching, and status tracking.
+ * - Returns an array of TranscriptBlock objects.
+ * - Only runs if a transcriptId is provided.
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import type { TranscriptBlock } from "@/types/transcript";
 
