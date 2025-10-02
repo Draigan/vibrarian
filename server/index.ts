@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.js";
 import chatRoutes from "./routes/chat.js";
 import chatSessionRouter from "./routes/chatSession.js";
 import transcriptRouter from "./routes/transcripts.js";
+import './db_listeners/chatRenameListener.js'
 
 const app = express();
 const port = 3000;
@@ -47,5 +48,5 @@ app.listen(port, () => {
   logger.info(`Server running on http://localhost:${port}`);
 });
 
-export { logger }; // Optional: so you can import and use `logger` in your routes/controllers
+export { logger }; 
 

@@ -26,7 +26,7 @@ router.post("/send-message", requireAuth, async (req, res) => {
     }
     console.log("User: ", userMessage);
     // Forward the message to n8n
-    const n8nResponse = await fetch(`${N8N_ENDPOINT}`, {
+    const n8nResponse = await fetch(`${N8N_ENDPOINT}/n8n-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: userMessage, sessionId  }),

@@ -10,7 +10,7 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 export const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 /**
- * Use this if you want to perform a query as a user with a token
+ * Use this if you want to perform a query as a user with a token.
  */
 export function createUserClient(token: string) {
   return createClient(supabaseUrl, serviceRoleKey, {
