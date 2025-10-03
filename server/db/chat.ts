@@ -23,9 +23,11 @@ export async function insertMessage(
 
   if (!session) {
     // Step 2: Create the session with user_id
+
+
     const { error: insertError } = await supabase
       .from("chat_sessions")
-      .insert({ id: sessionId, user_id, title: "test2" });
+      .insert({ id: sessionId, user_id, title: `${content.slice(0,100)}...` });
 
     if (insertError) throw insertError;
   }
