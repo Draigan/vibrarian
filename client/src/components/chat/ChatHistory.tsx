@@ -9,15 +9,16 @@
 import { useState } from "react";
 import { useChat } from "@/context/ChatContext";
 import { ChatHistoryItem } from "./ChatHistoryItem";
-import { RenameSessionDialog } from "./RenameSessionDialog";
+import { DeleteSessionDialog } from "./DeleteSessionDialog";
 import { useChatSessionActions } from "@/hooks/useChatSessionActions";
 
 type Props = {
   collapsed: boolean;
-  setSidebarLocked: (locked: boolean) => void;
+  setUserMenuOpen: (open: boolean) => void;
+  setThemeDropdownOpen: (open: boolean) => void;
 };
 
-export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
+export function ChatHistory({ collapsed, setUserMenuOpen, setThemeDropdownOpen }: Props) {
   const {
     sessions,
     sessionId,
@@ -25,16 +26,16 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
     switchSession,
   } = useChat();
 
-  const { deleteSession, renameSession, isRenaming } = useChatSessionActions();
-  
-  const [renameDialog, setRenameDialog] = useState<{
+  const { deleteSession, renameSession, isDeleting } = useChatSessionActions();
+
+  const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     sessionId: string;
-    currentTitle: string;
+    chatTitle: string;
   }>({
     open: false,
     sessionId: "",
-    currentTitle: "",
+    chatTitle: "",
   });
 
   return (
@@ -66,20 +67,21 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
             title={s.title}
             active={s.id === sessionId}
             onClick={() => switchSession(s.id)}
-            onRename={(id) => {
-              const session = sessions.find((sess) => sess.id === id);
-              setRenameDialog({
-                open: true,
-                sessionId: id,
-                currentTitle: session?.title || "",
-              });
+            onRename={(id, newTitle) => {
+              renameSession({ sessionId: id, title: newTitle });
             }}
             onDelete={(id) => {
-              if (window.confirm("Are you sure you want to delete this chat session? This action cannot be undone.")) {
-                deleteSession(id);
-              }
+              const session = sessions.find((sess) => sess.id === id);
+              setDeleteDialog({
+                open: true,
+                sessionId: id,
+                chatTitle: session?.title || "Untitled Chat",
+              });
             }}
-            setSidebarLocked={setSidebarLocked}
+            setSidebarLocked={(locked) => {
+              // When chat history dropdown is open, we lock the sidebar by setting user menu state
+              setUserMenuOpen(locked);
+            }}
           />
         ))}
 
@@ -90,15 +92,11 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
         )}
       </div>
 
-      <RenameSessionDialog
-        open={renameDialog.open}
-        onOpenChange={(open) => setRenameDialog(prev => ({ ...prev, open }))}
-        currentTitle={renameDialog.currentTitle}
-        onConfirm={(newTitle) => {
-          renameSession({ sessionId: renameDialog.sessionId, title: newTitle });
-          setRenameDialog(prev => ({ ...prev, open: false }));
-        }}
-        isLoading={isRenaming}
+      <DeleteSessionDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        onConfirm={() => deleteSession(deleteDialog.sessionId)}
+        chatTitle={deleteDialog.chatTitle}
       />
     </div>
   );

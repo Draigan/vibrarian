@@ -71,7 +71,7 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
   // as === "link"
   const { to, ...linkRest } = rest as React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string };
   return (
-     <div className="px-2 py-1" onClick={()=> switchSession("new")}> 
+     <div className="px-2 py-1" onClick={()=> switchSession("new")}>
     <Link
       to={to}
       className={className}

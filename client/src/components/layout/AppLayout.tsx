@@ -9,7 +9,7 @@
  * - Main content area that adapts alongside the sidebar.
  */
 
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
 import { SidebarNavButton } from "./SidebarNavButton";
 import {
@@ -30,11 +30,35 @@ type Props = {
 
 export function AppLayout({ children }: Props) {
   const { settings } = useUserSettings();
+  const sidebarRef = useRef<HTMLElement>(null);
 
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
   const [hovered, setHovered] = useState(false);
-  const [sidebarLocked, setSidebarLocked] = useState(false);
-  const collapsed = manuallyCollapsed && !hovered;
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
+  const [sidebarAlwaysOpen, setSidebarAlwaysOpen] = useState(false);
+
+  const sidebarLocked = isUserMenuOpen || isThemeDropdownOpen;
+  const collapsed = sidebarAlwaysOpen ? false : manuallyCollapsed && !hovered && !sidebarLocked;
+
+  // Handle clicks outside the sidebar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        // Add a small delay to allow dropdowns to close first
+        setTimeout(() => {
+          if (!sidebarLocked && !sidebarAlwaysOpen) {
+            setHovered(false);
+          }
+        }, 50);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [sidebarLocked]);
 
   const navLinks = [
     { to: "/", label: "Home", icon: <Home size={20} />, show: true },
@@ -56,8 +80,9 @@ export function AppLayout({ children }: Props) {
     <div className="w-screen h-screen bg-background text-foreground relative">
       <MobileMenu navLinks={navLinks} />
 
-      {/* Sidebar */}
-      <aside
+        {/* Sidebar */}
+        <aside
+        ref={sidebarRef}
         className={`
           hidden chat:flex chat:flex-col
           fixed top-0 left-0 h-full
@@ -67,8 +92,8 @@ export function AppLayout({ children }: Props) {
           z-50 p-0
         `}
         style={{ minWidth: 56, maxWidth: 256 }}
-        onMouseEnter={() => !sidebarLocked && setHovered(true)}
-        onMouseLeave={() => !sidebarLocked && setHovered(false)}
+        onMouseEnter={() => !sidebarLocked && !sidebarAlwaysOpen && setHovered(true)}
+        onMouseLeave={() => !sidebarLocked && !sidebarAlwaysOpen && setHovered(false)}
       >
         {/* Logo/Header */}
         <div className="h-14 w-full flex items-center border-b border-border px-2">
@@ -110,7 +135,8 @@ export function AppLayout({ children }: Props) {
         {settings.userName && (
           <div className="flex-1 min-h-0 overflow-y-auto w-full">
             <ChatHistory
-              setSidebarLocked={setSidebarLocked}
+              setUserMenuOpen={setIsUserMenuOpen}
+              setThemeDropdownOpen={setIsThemeDropdownOpen}
               collapsed={collapsed} />
           </div>
         )}
@@ -119,6 +145,10 @@ export function AppLayout({ children }: Props) {
         <SidebarUserMenu
           collapsed={collapsed}
           setCollapsed={setManuallyCollapsed}
+          setUserMenuOpen={setIsUserMenuOpen}
+          setThemeDropdownOpen={setIsThemeDropdownOpen}
+          sidebarAlwaysOpen={sidebarAlwaysOpen}
+          setSidebarAlwaysOpen={setSidebarAlwaysOpen}
         />
 
         <div className="w-full px-2 pb-2">
@@ -148,7 +178,10 @@ export function AppLayout({ children }: Props) {
       </aside>
 
       {/* Main content */}
-      <main className="w-full chat:pl-14 h-full overflow-auto">
+      <main className={`
+        w-full h-full overflow-auto
+        ${sidebarAlwaysOpen && !collapsed ? 'chat:pl-64' : 'chat:pl-14'}
+      `}>
         {children}
       </main>
     </div>

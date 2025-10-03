@@ -1,5 +1,5 @@
 import { Moon, Sun } from "lucide-react"
- 
+
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -8,12 +8,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/components/theme-provider"
- 
-export function ModeToggle() {
+
+interface ModeToggleProps {
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function ModeToggle({ onOpenChange }: ModeToggleProps) {
   const { setTheme } = useTheme()
- 
+
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon">
           <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
