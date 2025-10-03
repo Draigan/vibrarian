@@ -11,14 +11,14 @@ import { useChatSession } from "@/hooks/useChatSession";
 import type { ChatMessage } from "@/types/chat";
 
 type ChatContextType = {
-  virtuosoRef: any;
+  virtuosoRef: React.MutableRefObject<any>;
   replaceMessages: (msgs: ChatMessage[]) => void;
   appendMessages: (msgs: ChatMessage[]) => void;
   mapMessages: (fn: (msg: ChatMessage) => ChatMessage) => void;
   sendMessage: (msg: string) => void;
   handleAbortMessage: () => void;
   handleRetry: (msg: ChatMessage) => void;
-  sessions: any[];
+  sessions: Array<{ id: string; title: string; created_at: string; updated_at?: string }>;
   sessionId: string;
   setSessionId: (id: string) => void;
   switchSession: (id: string) => void;
@@ -30,7 +30,11 @@ type ChatContextType = {
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
-export const ChatProvider = ({ children }: { children: ReactNode }) => {
+interface Props {
+  children: ReactNode;
+}
+
+export function ChatProvider({ children }: Props) {
   // Manage Virtuoso message list
   const { virtuosoRef, replaceMessages, appendMessages, mapMessages } =
     useVirtuoso();
@@ -50,7 +54,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const allMessages = virtuosoRef.current?.data.get?.() || messages;
   const assistantIsTyping = allMessages.some(
-    (m: ChatMessage) => m.status === "pending"
+    (m) => m.status === "pending"
   );
 
   // ----------------------
@@ -60,9 +64,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     abortMessage();
 
     const updated = (virtuosoRef.current?.data.get?.() || messages).map(
-      (m: ChatMessage) =>
+      (m) =>
         m.role === "assistant" && m.status === "pending"
-          ? { ...m, status: "aborted" }
+          ? { ...m, status: "aborted" as const }
           : m
     );
 
@@ -118,11 +122,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </ChatContext.Provider>
   );
-};
+}
 
-export const useChat = () => {
-  const ctx = useContext(ChatContext);
-  if (!ctx) throw new Error("useChat must be used within ChatProvider");
-  return ctx;
-};
+export function useChat() {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error("useChat must be used within a ChatProvider");
+  }
+  return context;
+}
 

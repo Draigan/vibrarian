@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useUserSettings } from './context/UserSettingsContext';
 
-const ProtectedRoute: React.FC = () => {
+function ProtectedRoute() {
   const {settings} = useUserSettings();
 
   if (!settings) return null;
@@ -12,6 +12,6 @@ const user = settings.userName;
   }
   // Logged in: render the child route component
   return <Outlet />;
-};
+}
 
 export default ProtectedRoute;

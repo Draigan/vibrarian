@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
+
 type Props = {
   collapsed: boolean;
 };

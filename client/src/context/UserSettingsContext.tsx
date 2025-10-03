@@ -17,21 +17,19 @@ const defaultSettings: UserSettings = {
   role: "viewer",
 };
 
-const UserSettingsContext = createContext<{
+interface UserSettingsContextType {
   settings: UserSettings;
   updateSettings: (newSettings: Partial<UserSettings>) => void;
   clearSettings: () => void;
-}>({
-  settings: defaultSettings,
-  updateSettings: () => {},
-  clearSettings: () => {},
-});
+}
 
-export const UserSettingsProvider = ({
-  children,
-}: {
+const UserSettingsContext = createContext<UserSettingsContextType | null>(null);
+
+interface Props {
   children: React.ReactNode;
-}) => {
+}
+
+export function UserSettingsProvider({ children }: Props) {
   const [settings, setSettings] = useState<UserSettings>(() => {
     const saved = localStorage.getItem("user-settings");
     return saved ? JSON.parse(saved) : defaultSettings;
@@ -60,7 +58,13 @@ export const UserSettingsProvider = ({
       {children}
     </UserSettingsContext.Provider>
   );
-};
+}
 
-export const useUserSettings = () => useContext(UserSettingsContext);
+export function useUserSettings() {
+  const context = useContext(UserSettingsContext);
+  if (!context) {
+    throw new Error('useUserSettings must be used within a UserSettingsProvider');
+  }
+  return context;
+}
 

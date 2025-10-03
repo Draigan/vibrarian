@@ -24,11 +24,11 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { ChatHistory } from "../chat/ChatHistory";
 import { SidebarUserMenu } from "./SidebarUserMenu";
 
-type AppLayoutProps = {
+type Props = {
   children: ReactNode;
 };
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children }: Props) {
   const { settings } = useUserSettings();
 
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);

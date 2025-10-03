@@ -14,13 +14,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 
-export function SidebarUserMenu({
-  collapsed,
-  setCollapsed,
-}: {
+interface Props {
   collapsed: boolean;
   setCollapsed: (v: boolean) => void;
-}) {
+}
+
+export function SidebarUserMenu({ collapsed }: Props) {
   const { logout } = useAuth();
   const { settings } = useUserSettings();
   const [open, setOpen] = useState(false);

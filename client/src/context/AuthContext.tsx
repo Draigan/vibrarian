@@ -15,16 +15,13 @@ interface AuthContextType {
   ) => Promise<{ success: boolean; message: string }>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  login: async () => {},
-  logout: async () => {},
-  signup: async () => ({ success: false, message: "" }),
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+interface Props {
+  children: React.ReactNode;
+}
+
+export function AuthProvider({ children }: Props) {
   const { updateSettings, clearSettings } = useUserSettings();
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -137,7 +134,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       {loading ? <LayoutSkeleton /> : children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
 

@@ -1,9 +1,15 @@
 import { SidebarNavButton } from "./SidebarNavButton";
-import { Button } from "../ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import { LogIn, LogOut } from "lucide-react";
+import type { UserSettings } from "@/types/user_settings";
 
-export function SidebarFooter({ settings, collapsed, handleLogout }) {
+interface Props {
+  settings: UserSettings;
+  collapsed: boolean;
+  handleLogout: () => void;
+}
+
+export function SidebarFooter({ settings, collapsed, handleLogout }: Props) {
   return (
     <div className="w-full flex flex-col gap-2 pb-2">
       {settings.userName ? (

@@ -60,14 +60,16 @@ interface ChatBubbleAvatarProps {
   className?: string;
 }
 
-const ChatBubbleAvatar: React.FC<ChatBubbleAvatarProps> = ({
+function ChatBubbleAvatar({
   src,
   className,
-}) => (
-  <Avatar className={className}>
-    <AvatarImage src={src} alt="Avatar" />
-  </Avatar>
-);
+}: ChatBubbleAvatarProps) {
+  return (
+    <Avatar className={className}>
+      <AvatarImage src={src} alt="Avatar" />
+    </Avatar>
+  );
+}
 
 // ChatBubbleMessage
 const chatBubbleMessageVariants = cva("p-4", {
@@ -128,38 +130,42 @@ interface ChatBubbleTimestampProps
   timestamp: string;
 }
 
-const ChatBubbleTimestamp: React.FC<ChatBubbleTimestampProps> = ({
+function ChatBubbleTimestamp({
   timestamp,
   className,
   ...props
-}) => (
-  <div className={cn("text-xs mt-2 text-right", className)} {...props}>
-  </div>
-);
+}: ChatBubbleTimestampProps) {
+  return (
+    <div className={cn("text-xs mt-2 text-right", className)} {...props}>
+    </div>
+  );
+}
 
 // ChatBubbleAction
 type ChatBubbleActionProps = ButtonProps & {
   icon: React.ReactNode;
 };
 
-const ChatBubbleAction: React.FC<ChatBubbleActionProps> = ({
+function ChatBubbleAction({
   icon,
   onClick,
   className,
   variant = "ghost",
   size = "icon",
   ...props
-}) => (
-  <Button
-    variant={variant}
-    size={size}
-    className={className}
-    onClick={onClick}
-    {...props}
-  >
-    {icon}
-  </Button>
-);
+}: ChatBubbleActionProps) {
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      className={className}
+      onClick={onClick}
+      {...props}
+    >
+      {icon}
+    </Button>
+  );
+}
 
 interface ChatBubbleActionWrapperProps
   extends React.HTMLAttributes<HTMLDivElement> {

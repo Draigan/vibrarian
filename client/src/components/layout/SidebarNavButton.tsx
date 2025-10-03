@@ -25,7 +25,7 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
     children,
     collapsed,
     ...rest
-  } = props as any;
+  } = props;
 
   const {switchSession} = useChat();
 

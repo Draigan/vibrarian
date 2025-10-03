@@ -63,11 +63,13 @@ interface ChatBubbleAvatarProps {
   className?: string;
 }
 
-const ChatBubbleAvatar: React.FC<ChatBubbleAvatarProps> = ({ src, className }) => (
-  <Avatar className={className}>
-    <AvatarImage src={src} alt="Avatar" />
-  </Avatar>
-);
+function ChatBubbleAvatar({ src, className }: ChatBubbleAvatarProps) {
+  return (
+    <Avatar className={className}>
+      <AvatarImage src={src} alt="Avatar" />
+    </Avatar>
+  );
+}
 
 // ----------------------
 // ChatBubbleMessage
@@ -113,6 +115,7 @@ const ChatBubbleMessage = React.forwardRef<HTMLDivElement, ChatBubbleMessageProp
       children,
       ...props
     },
+    ref
   ) => {
     const [copied, setCopied] = React.useState(false);
     const msgRef = React.useRef<HTMLDivElement>(null);
@@ -130,7 +133,7 @@ const ChatBubbleMessage = React.forwardRef<HTMLDivElement, ChatBubbleMessageProp
     }
 
     return (
-      <div className="flex gap-2 items-end flex-col">
+      <div className="flex gap-2 items-end flex-col" ref={ref}>
         <div className="flex gap-2 items-end w-full">
           {/* Avatar on left for assistant */}
           {variant === "received" && showAvatar && avatarSrc && status !== "failed" && (
@@ -193,28 +196,30 @@ ChatBubbleMessage.displayName = "ChatBubbleMessage";
 // ----------------------
 // ChatBubbleAction
 // ----------------------
-type ChatBubbleActionProps = ButtonProps & {
+interface ChatBubbleActionProps extends ButtonProps {
   icon: React.ReactNode;
-};
+}
 
-const ChatBubbleAction: React.FC<ChatBubbleActionProps> = ({
+function ChatBubbleAction({
   icon,
   onClick,
   className,
   variant = "ghost",
   size = "icon",
   ...props
-}) => (
-  <Button
-    variant={variant}
-    size={size}
-    className={className}
-    onClick={onClick}
-    {...props}
-  >
-    {icon}
-  </Button>
-);
+}: ChatBubbleActionProps) {
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      className={className}
+      onClick={onClick}
+      {...props}
+    >
+      {icon}
+    </Button>
+  );
+}
 
 interface ChatBubbleActionWrapperProps
   extends React.HTMLAttributes<HTMLDivElement> {

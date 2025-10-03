@@ -6,8 +6,11 @@
  * - Collapses/expands smoothly based on sidebar state.
  */
 
+import { useState } from "react";
 import { useChat } from "@/context/ChatContext";
 import { ChatHistoryItem } from "./ChatHistoryItem";
+import { RenameSessionDialog } from "./RenameSessionDialog";
+import { useChatSessionActions } from "@/hooks/useChatSessionActions";
 
 type Props = {
   collapsed: boolean;
@@ -21,6 +24,18 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
     sessionsDataLoading: loading,
     switchSession,
   } = useChat();
+
+  const { deleteSession, renameSession, isRenaming } = useChatSessionActions();
+  
+  const [renameDialog, setRenameDialog] = useState<{
+    open: boolean;
+    sessionId: string;
+    currentTitle: string;
+  }>({
+    open: false,
+    sessionId: "",
+    currentTitle: "",
+  });
 
   return (
     <div
@@ -51,6 +66,19 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
             title={s.title}
             active={s.id === sessionId}
             onClick={() => switchSession(s.id)}
+            onRename={(id) => {
+              const session = sessions.find((sess) => sess.id === id);
+              setRenameDialog({
+                open: true,
+                sessionId: id,
+                currentTitle: session?.title || "",
+              });
+            }}
+            onDelete={(id) => {
+              if (window.confirm("Are you sure you want to delete this chat session? This action cannot be undone.")) {
+                deleteSession(id);
+              }
+            }}
             setSidebarLocked={setSidebarLocked}
           />
         ))}
@@ -61,6 +89,17 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
           </div>
         )}
       </div>
+
+      <RenameSessionDialog
+        open={renameDialog.open}
+        onOpenChange={(open) => setRenameDialog(prev => ({ ...prev, open }))}
+        currentTitle={renameDialog.currentTitle}
+        onConfirm={(newTitle) => {
+          renameSession({ sessionId: renameDialog.sessionId, title: newTitle });
+          setRenameDialog(prev => ({ ...prev, open: false }));
+        }}
+        isLoading={isRenaming}
+      />
     </div>
   );
 }

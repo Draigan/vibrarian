@@ -8,7 +8,7 @@
  * - Prevents sidebar collapsing when menu is open.
  */
 
-import { MessageCircle, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

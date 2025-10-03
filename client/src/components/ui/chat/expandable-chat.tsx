@@ -37,14 +37,14 @@ interface ExpandableChatProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: React.ReactNode;
 }
 
-const ExpandableChat: React.FC<ExpandableChatProps> = ({
+function ExpandableChat({
   className,
   position = "bottom-right",
   size = "md",
   icon,
   children,
   ...props
-}) => {
+}: ExpandableChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -82,33 +82,39 @@ const ExpandableChat: React.FC<ExpandableChatProps> = ({
       />
     </div>
   );
-};
+}
 
 ExpandableChat.displayName = "ExpandableChat";
 
-const ExpandableChatHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+function ExpandableChatHeader({
   className,
   ...props
-}) => (
-  <div
-    className={cn("flex items-center justify-between p-4 border-b", className)}
-    {...props}
-  />
-);
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("flex items-center justify-between p-4 border-b", className)}
+      {...props}
+    />
+  );
+}
 
 ExpandableChatHeader.displayName = "ExpandableChatHeader";
 
-const ExpandableChatBody: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+function ExpandableChatBody({
   className,
   ...props
-}) => <div className={cn("flex-grow overflow-y-auto", className)} {...props} />;
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("flex-grow overflow-y-auto", className)} {...props} />;
+}
 
 ExpandableChatBody.displayName = "ExpandableChatBody";
 
-const ExpandableChatFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+function ExpandableChatFooter({
   className,
   ...props
-}) => <div className={cn("border-t p-4", className)} {...props} />;
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("border-t p-4", className)} {...props} />;
+}
 
 ExpandableChatFooter.displayName = "ExpandableChatFooter";
 
@@ -119,29 +125,31 @@ interface ExpandableChatToggleProps
   toggleChat: () => void;
 }
 
-const ExpandableChatToggle: React.FC<ExpandableChatToggleProps> = ({
+function ExpandableChatToggle({
   className,
   icon,
   isOpen,
   toggleChat,
   ...props
-}) => (
-  <Button
-    variant="default"
-    onClick={toggleChat}
-    className={cn(
-      "w-14 h-14 rounded-full shadow-md flex items-center justify-center hover:shadow-lg hover:shadow-black/30 transition-all duration-300",
-      className,
-    )}
-    {...props}
-  >
-    {isOpen ? (
-      <X className="h-6 w-6" />
-    ) : (
-      icon || <MessageCircle className="h-6 w-6" />
-    )}
-  </Button>
-);
+}: ExpandableChatToggleProps) {
+  return (
+    <Button
+      variant="default"
+      onClick={toggleChat}
+      className={cn(
+        "w-14 h-14 rounded-full shadow-md flex items-center justify-center hover:shadow-lg hover:shadow-black/30 transition-all duration-300",
+        className,
+      )}
+      {...props}
+    >
+      {isOpen ? (
+        <X className="h-6 w-6" />
+      ) : (
+        icon || <MessageCircle className="h-6 w-6" />
+      )}
+    </Button>
+  );
+}
 
 ExpandableChatToggle.displayName = "ExpandableChatToggle";
 

@@ -17,6 +17,7 @@ type Props = {
   virtuoso: React.RefObject<any>;
   handleRetry: (msg: ChatMessage) => void;
   messages: ChatMessage[];
+  className: string;
 };
 
 const MessageContent = ({
