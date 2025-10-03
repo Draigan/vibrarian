@@ -8,6 +8,7 @@ import { useVirtuoso } from "@/hooks/useVirtuoso";
 import { useChatActions } from "@/hooks/useChatActions";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatSession } from "@/hooks/useChatSession";
+import { useRealtimeSessionUpdates } from "@/hooks/useRealtimeSessionUpdates";
 import type { ChatMessage } from "@/types/chat";
 
 type ChatContextType = {
@@ -48,6 +49,9 @@ export function ChatProvider({ children }: Props) {
   // Sessions and active sessionId
   const { sessions, sessionId, setSessionId, loading: sessionsDataLoading } =
     useChatSession();
+
+  // Set up real-time session updates
+  useRealtimeSessionUpdates();
 
   // Messages for the active session
   const { data: messages = [], status } = useChatMessages(sessionId);

@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.js";
 import chatRoutes from "./routes/chat.js";
 import chatSessionRouter from "./routes/chatSession.js";
 import transcriptRouter from "./routes/transcripts.js";
+import sessionUpdatesRouter from "./routes/sessionUpdates.js";
 import './db_listeners/chatRenameListener.js'
 
 const app = express();
@@ -42,6 +43,7 @@ app.use(cookieParser());
 app.use("/api", chatRoutes);
 app.use("/api", transcriptRouter);
 app.use("/api", chatSessionRouter);
+app.use("/api", sessionUpdatesRouter);
 app.use("/api", authRouter);
 
 app.listen(port, () => {

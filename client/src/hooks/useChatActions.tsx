@@ -166,6 +166,11 @@ export function useChatActions(
         ["chatMessages", sessionId, settings.userName],
         (old = []) => [...old, assistantMessage]
       );
+
+      // Invalidate sessions cache to refetch the list and show new session
+      queryClient.invalidateQueries({
+        queryKey: ["chatSessions", settings.userName],
+      });
     },
 
     // ----------------------
