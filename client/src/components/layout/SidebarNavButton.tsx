@@ -28,6 +28,7 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
   } = props;
 
   const {switchSession} = useChat();
+  const isNewChat = (children as string) === "New Chat";
 
   const className = `
     group flex items-center w-full rounded-md px-2 h-12 mb-1
@@ -71,7 +72,7 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
   // as === "link"
   const { to, ...linkRest } = rest as React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string };
   return (
-     <div className="px-2 py-1" onClick={()=> switchSession("new")}>
+     <div className="px-2 py-1" onClick={isNewChat ? ()=> switchSession("new") : undefined}>
     <Link
       to={to}
       className={className}

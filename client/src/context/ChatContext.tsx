@@ -3,6 +3,8 @@ import {
   createContext,
   useContext,
   type ReactNode,
+  useEffect,
+  useRef,
 } from "react";
 import { useVirtuoso } from "@/hooks/useVirtuoso";
 import { useChatActions } from "@/hooks/useChatActions";
@@ -55,6 +57,15 @@ export function ChatProvider({ children }: Props) {
 
   // Messages for the active session
   const { data: messages = [], status } = useChatMessages(sessionId);
+  const lastLoadedSession = useRef<string | null>(null);
+
+  // Update Virtuoso with React Query messages when sessionId changes and data is ready
+  useEffect(() => {
+    if (sessionId && status === 'success' && sessionId !== lastLoadedSession.current) {
+      replaceMessages(messages);
+      lastLoadedSession.current = sessionId;
+    }
+  }, [sessionId, status, messages, replaceMessages]);
 
   const allMessages = virtuosoRef.current?.data.get?.() || messages;
   const assistantIsTyping = allMessages.some(
@@ -97,9 +108,10 @@ export function ChatProvider({ children }: Props) {
   // ----------------------
   function switchSession(id: string) {
     if (id === "new") {
+      setSessionId(crypto.randomUUID());
       return replaceMessages([]);
     }
-    replaceMessages(messages);
+    replaceMessages([]);
     setSessionId(id);
   }
 

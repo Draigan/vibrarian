@@ -50,8 +50,7 @@ const MessageContent = ({
   </div>
 );
 
-export default function ChatBody({ virtuoso, handleRetry }: Props) {
-  const messages: ChatMessage[] = virtuoso.current?.data.get() || [];
+export default function ChatBody({ virtuoso, handleRetry, messages }: Props) {
   return (
     <div
       className="w-full px-3 chat:px-0 chat:w-[760px]"

@@ -1,13 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserSettings } from "@/context/UserSettingsContext";
 import { useAuth } from "@/context/AuthContext";
+import { useChat } from "@/context/ChatContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 export function useChatSessionActions() {
   const queryClient = useQueryClient();
-  const { settings, updateSettings } = useUserSettings();
+  const { settings } = useUserSettings();
   const { logout } = useAuth();
+  const { switchSession } = useChat();
 
   // Delete session mutation
   const deleteSessionMutation = useMutation({
@@ -40,7 +42,7 @@ export function useChatSessionActions() {
 
       // If the deleted session was the active one, switch to a new session
       if (sessionId === settings.chatSession) {
-        updateSettings({ chatSession: crypto.randomUUID() });
+        switchSession("new");
       }
 
       // Also invalidate messages for the deleted session
