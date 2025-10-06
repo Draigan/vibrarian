@@ -19,11 +19,8 @@ export function useChatSession() {
     // eslint-disable-next-line
   }, []); // run only on mount
 
-  // Change session (existing or new)
-  const selectSession = (id: string | "new") => {
-    if (id === "new") {
-      id = uuidv4();
-    }
+  // Change session 
+  const selectSession = (id: string) => {
     updateSettings({ chatSession: id });
   };
 

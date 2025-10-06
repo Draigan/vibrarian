@@ -2,6 +2,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   type ReactNode,
 } from "react";
 import { useVirtuoso } from "@/hooks/useVirtuoso";
@@ -93,11 +94,15 @@ export function ChatProvider({ children }: Props) {
   // ----------------------
   function switchSession(id: string) {
     if (id === "new") {
+      setSessionId(crypto.randomUUID());
       return replaceMessages([]);
     }
-    replaceMessages(messages);
     setSessionId(id);
   }
+  useEffect(() => {
+    // when sessionId changes and new messages are fetched
+    replaceMessages(messages);
+  }, [sessionId, messages]);
 
   return (
     <ChatContext.Provider

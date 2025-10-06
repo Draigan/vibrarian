@@ -13,13 +13,13 @@ type SessionType = {
   created_at: string;
 };
 
-export function ChatHeader({
+export function ChatHeader({sessionId
 }: Props) {
 
   return (
     <>
       <div className="flex justify-between w-full h-[57px]">
-
+        {sessionId}
       </div>
     </>
   );

@@ -27,6 +27,8 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
     ...rest
   } = props;
 
+  const isNewChat = (children as string) === "New Chat";
+
   const {switchSession} = useChat();
 
   const className = `

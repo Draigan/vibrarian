@@ -41,13 +41,13 @@ export function ChatHistoryItem({
 
   return (
     <div
-      className={`relative group flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-accent hover:rounded-full ${
-        active ? "bg-accent font-medium" : ""
-      }`}
+      className={`relative group flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-accent hover:rounded-full ${active ? "bg-accent font-medium" : ""
+        }`}
+
+      onClick={onClick}
     >
       {/* Left: Chat title + icon */}
       <button
-        onClick={onClick}
         className="flex items-center gap-2 flex-1 text-left truncate"
       >
         <span className="truncate">{title || "Untitled Chat"}</span>
@@ -74,7 +74,7 @@ export function ChatHistoryItem({
               className="h-6 w-6 p-0"
               onClick={(e) => e.stopPropagation()}
             >
-              <MoreHorizontal size={16} /> 
+              <MoreHorizontal size={16} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" side="right" sideOffset={4}>
