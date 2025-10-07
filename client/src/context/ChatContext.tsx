@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 import { useVirtuoso } from "@/hooks/useVirtuoso";
@@ -57,6 +58,7 @@ export function ChatProvider({ children }: Props) {
   const assistantIsTyping = allMessages.some(
     (m) => m.status === "pending"
   );
+  const previousSessionId = useRef<string | null>(null);
 
   // ----------------------
   // Abort: mark pending assistant messages as aborted
@@ -100,9 +102,30 @@ export function ChatProvider({ children }: Props) {
     setSessionId(id);
   }
   useEffect(() => {
-    // when sessionId changes and new messages are fetched
-    replaceMessages(messages);
-  }, [sessionId, messages]);
+    const virtuosoMessages = virtuosoRef.current?.data.get?.() || [];
+    const pendingMessages = virtuosoMessages.filter(
+      (m) => m.status === "pending"
+    );
+    const nonPendingVirtuoso = virtuosoMessages.filter(
+      (m) => m.status !== "pending"
+    );
+
+    const hasSameMessages =
+      nonPendingVirtuoso.length === messages.length &&
+      nonPendingVirtuoso.every((msg, index) => msg.id === messages[index]?.id);
+
+    if (
+      hasSameMessages &&
+      previousSessionId.current === sessionId &&
+      pendingMessages.length === 0
+    ) {
+      return;
+    }
+
+    // Sync history without wiping out an in-flight assistant placeholder
+    replaceMessages([...messages, ...pendingMessages]);
+    previousSessionId.current = sessionId;
+  }, [sessionId, messages, replaceMessages]);
 
   return (
     <ChatContext.Provider
@@ -136,4 +159,3 @@ export function useChat() {
   }
   return context;
 }
-
