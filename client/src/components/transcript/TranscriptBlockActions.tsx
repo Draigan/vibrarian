@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Copy, Pencil } from "lucide-react";
 
+interface Props {
+  onCopy: () => void;
+  onEdit: () => void;
+}
+
 export function TranscriptBlockActions({
   onCopy,
   onEdit,
-}: {
-  onCopy: () => void;
-  onEdit: () => void;
-}) {
+}: Props) {
   return (
     <div className="flex ">
       <Button
@@ -32,4 +34,3 @@ export function TranscriptBlockActions({
     </div>
   );
 }
-

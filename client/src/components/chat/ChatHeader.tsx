@@ -1,17 +1,16 @@
 
+interface SessionType {
+  id: string;
+  title: string;
+  created_at: string;
+}
 
-type Props = {
+interface Props {
   sessions: SessionType[];
   sessionId: string | null;
   loading: boolean;
   handleSwitchSession: (id: string) => void;
 }
-
-type SessionType = {
-  id: string;
-  title: string;
-  created_at: string;
-};
 
 export function ChatHeader({sessionId
 }: Props) {

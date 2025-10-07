@@ -1,6 +1,19 @@
+import { type ReactNode } from "react";
 import { SidebarNavButton } from "./SidebarNavButton";
 
-export function SidebarNavLinks({ navLinks, collapsed }) {
+interface NavLink {
+  to: string;
+  label: string;
+  icon: ReactNode;
+  show: boolean;
+}
+
+interface Props {
+  navLinks: NavLink[];
+  collapsed?: boolean;
+}
+
+export function SidebarNavLinks({ navLinks, collapsed = false }: Props) {
   return (
     <nav className="flex flex-col w-full">
       {navLinks.filter((l) => l.show).map((link) => (

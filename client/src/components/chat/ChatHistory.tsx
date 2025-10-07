@@ -11,10 +11,10 @@ import { useChat } from "@/context/ChatContext";
 import { ChatHistoryItem } from "./ChatHistoryItem";
 import { useChatSessionActions } from "@/hooks/useChatSessionActions";
 
-type Props = {
+interface Props {
   collapsed: boolean;
   setSidebarLocked: (locked: boolean) => void;
-};
+}
 
 export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
   const {
@@ -24,7 +24,7 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
     switchSession,
   } = useChat();
 
-  const { deleteSession, renameSession, isRenaming } = useChatSessionActions();
+  const { deleteSession, renameSession } = useChatSessionActions();
 
   const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
 
@@ -92,4 +92,3 @@ export function ChatHistory({ collapsed, setSidebarLocked }: Props) {
     </div>
   );
 }
-

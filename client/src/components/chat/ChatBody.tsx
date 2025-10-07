@@ -12,24 +12,27 @@ import {
 } from "@virtuoso.dev/message-list";
 import { ChatBubble, ChatBubbleMessage } from "./ChatBubble";
 import type { ChatMessage } from "@/types/chat";
+import { cn } from "@/lib/utils";
 
-type Props = {
+interface Props {
   virtuoso: React.RefObject<any>;
   handleRetry: (msg: ChatMessage) => void;
   messages: ChatMessage[];
-  className: string;
-};
+  className?: string;
+}
+
+interface MessageContentProps {
+  msg: ChatMessage;
+  isUser: boolean;
+  isLastMessage: boolean;
+  handleRetry: (msg: ChatMessage) => void;
+}
 
 const MessageContent = ({
   msg,
   isUser,
   handleRetry,
-}: {
-  msg: ChatMessage;
-  isUser: boolean;
-  isLastMessage: boolean;
-  handleRetry: (msg: ChatMessage) => void;
-}) => (
+}: MessageContentProps) => (
   <div className="flex justify-center">
     <div className="chat-size-default">
       <div className={`w-full flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -50,11 +53,17 @@ const MessageContent = ({
   </div>
 );
 
-export default function ChatBody({ virtuoso, handleRetry }: Props) {
-  const messages: ChatMessage[] = virtuoso.current?.data.get() || [];
+export default function ChatBody({
+  virtuoso,
+  handleRetry,
+  messages,
+  className,
+}: Props) {
+  const renderMessages: ChatMessage[] =
+    virtuoso.current?.data.get?.() || messages;
   return (
     <div
-      className="w-full px-3 chat:px-0 chat:w-[760px]"
+      className={cn("w-full px-3 chat:px-0 chat:w-[760px]", className)}
       style={{
         display: "flex",
         height: "calc(100vh - 205px)",
@@ -68,14 +77,14 @@ export default function ChatBody({ virtuoso, handleRetry }: Props) {
           computeItemKey={({ data }) => data.key ?? data.id}
           ItemContent={({ data }) => {
             const isUser = data.role === "user";
-            const lastId = messages[messages.length - 1]?.id;
+            const lastId = renderMessages[renderMessages.length - 1]?.id;
             const isLastMessage = data.id === lastId;
             return (
               <MessageContent
                 msg={data}
                 isUser={isUser}
                 isLastMessage={isLastMessage}
-                handleRetry={()=> handleRetry(data)}
+                handleRetry={() => handleRetry(data)}
               />
             );
           }}
@@ -84,4 +93,3 @@ export default function ChatBody({ virtuoso, handleRetry }: Props) {
     </div>
   );
 }
-

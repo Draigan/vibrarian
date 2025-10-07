@@ -5,9 +5,15 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   },
   "ts-node": {
     "esm": true
-  }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["dist", "node_modules"]
 }

@@ -1,9 +1,9 @@
 import { MessageCircle } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
 
-type Props = {
+interface Props {
   collapsed: boolean;
-};
+}
 
 
 export function ChatSideHistory({ collapsed }: Props) {
@@ -51,4 +51,3 @@ export function ChatSideHistory({ collapsed }: Props) {
     </div>
   );
 }
-

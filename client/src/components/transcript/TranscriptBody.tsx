@@ -21,9 +21,9 @@ import {
 } from "@virtuoso.dev/message-list";
 import { Loader } from "../myui/Loader";
 
-type TranscriptBodyProps = {
-  transcriptId: string | undefined;
-};
+interface Props {
+  transcriptId?: string;
+}
 
 // 1. Speaker colors palette
 const SPEAKER_COLORS = [
@@ -32,7 +32,7 @@ const SPEAKER_COLORS = [
   "#0d9488", "#fcd34d", "#7c3aed", "#10b981", "#c026d3", "#fbbf24", "#57534e", "#fde68a"
 ];
 
-export default function TranscriptBody({ transcriptId }: TranscriptBodyProps) {
+export default function TranscriptBody({ transcriptId }: Props) {
   const { data: blocks = [], isLoading, error } = useTranscriptBlocks(transcriptId);
   const updateBlock = useUpdateTranscriptBlock(transcriptId);
 
@@ -149,4 +149,3 @@ export default function TranscriptBody({ transcriptId }: TranscriptBodyProps) {
     </VirtuosoMessageListLicense>
   );
 }
-

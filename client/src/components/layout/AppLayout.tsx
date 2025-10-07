@@ -24,9 +24,9 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { ChatHistory } from "../chat/ChatHistory";
 import { SidebarUserMenu } from "./SidebarUserMenu";
 
-type Props = {
+interface Props {
   children: ReactNode;
-};
+}
 
 export function AppLayout({ children }: Props) {
   const { settings } = useUserSettings();
@@ -154,4 +154,3 @@ export function AppLayout({ children }: Props) {
     </div>
   );
 }
-

@@ -1,4 +1,13 @@
-import { cn } from "@/lib/utils" 
+import { cn } from "@/lib/utils"
+
+interface Props {
+  id: string
+  title?: string
+  timestamp?: string
+  messageCount?: number
+  isActive?: boolean
+  onClick?: () => void
+}
 
 export function SessionButton({
   id = "",
@@ -7,14 +16,7 @@ export function SessionButton({
   messageCount = 0,
   isActive = false,
   onClick,
-}: {
-  id: string
-  title?: string
-  timestamp?: string
-  messageCount?: number
-  isActive?: boolean
-  onClick?: () => void
-}) {
+}: Props) {
   return (
     <div
       key={id}

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import MessageLoading from "./message-loading";
 import { Button, type ButtonProps } from "../button";
 
@@ -142,9 +142,9 @@ function ChatBubbleTimestamp({
 }
 
 // ChatBubbleAction
-type ChatBubbleActionProps = ButtonProps & {
+interface ChatBubbleActionProps extends ButtonProps {
   icon: React.ReactNode;
-};
+}
 
 function ChatBubbleAction({
   icon,

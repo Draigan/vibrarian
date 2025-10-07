@@ -1,22 +1,28 @@
-import  { type ReactNode, type ButtonHTMLAttributes } from "react";
+import {
+  type ReactNode,
+  type ButtonHTMLAttributes,
+  type AnchorHTMLAttributes,
+} from "react";
 import { Link } from "react-router-dom";
 import { useChat } from "@/context/ChatContext";
 
-type SidebarNavButtonProps =
-  | ({
-      as?: "link";
-      to: string;
-      icon: ReactNode;
-      children: ReactNode;
-      collapsed?: boolean;
-    } & React.AnchorHTMLAttributes<HTMLAnchorElement>)
-  | ({
-      as: "button";
-      onClick?: React.MouseEventHandler<HTMLButtonElement>;
-      icon: ReactNode;
-      children: ReactNode;
-      collapsed?: boolean;
-    } & ButtonHTMLAttributes<HTMLButtonElement>);
+type CommonProps = {
+  icon: ReactNode;
+  children: ReactNode;
+  collapsed?: boolean;
+};
+
+type LinkProps = CommonProps & {
+  as?: "link";
+  to: string;
+} & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "children">;
+
+type ButtonProps = CommonProps & {
+  as: "button";
+  to?: never;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">;
+
+type SidebarNavButtonProps = LinkProps | ButtonProps;
 
 export function SidebarNavButton(props: SidebarNavButtonProps) {
   const {
@@ -27,9 +33,7 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
     ...rest
   } = props;
 
-  const isNewChat = (children as string) === "New Chat";
-
-  const {switchSession} = useChat();
+  const { switchSession } = useChat();
 
   const className = `
     group flex items-center w-full rounded-md px-2 h-12 mb-1
@@ -71,7 +75,9 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
   }
 
   // as === "link"
-  const { to, ...linkRest } = rest as React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string };
+  const { to, ...linkRest } = rest as AnchorHTMLAttributes<HTMLAnchorElement> & {
+    to: string;
+  };
   return (
      <div className="px-2 py-1" onClick={()=> switchSession("new")}> 
     <Link
@@ -94,4 +100,3 @@ export function SidebarNavButton(props: SidebarNavButtonProps) {
     </div>
   );
 }
-

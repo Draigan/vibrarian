@@ -1,12 +1,18 @@
-import React from "react";
+// "#e40303", // Red
+// "#ff8c00", // Orange
+// "#ffed00", // Yellow
+// "#008026", // Green
+// "#004dff", // Blue
+// "#750787", // Purple
 
-    //"#e40303", // Red
-    //"#ff8c00", // Orange
-    //"#ffed00", // Yellow
-    //"#008026", // Green
-    //"#004dff", // Blue
-    //"#750787", // Purple
-export function Loader({ className = "", style = {} }: { className?: string; style?: React.CSSProperties }) {
+import type { CSSProperties } from "react";
+
+interface Props {
+  className?: string;
+  style?: CSSProperties;
+}
+
+export function Loader({ className = "", style = {} }: Props) {
   return (
     <>
       <span className={`loader ${className}`} style={style}></span>
@@ -64,4 +70,3 @@ export function Loader({ className = "", style = {} }: { className?: string; sty
     </>
   );
 }
-

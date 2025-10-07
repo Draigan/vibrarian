@@ -1,20 +1,28 @@
 import { useRef, useEffect } from "react";
 
+interface Props {
+  value: string;
+  editing: boolean;
+  onChange: (next: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
 export default function TranscriptBlockText({
   value,
   editing,
   onChange,
   onSave,
   onCancel,
-}) {
-  const textareaRef = useRef(null);
+}: Props) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Auto-resize on value change
   useEffect(() => {
     if (!editing || !textareaRef.current) return;
     const textarea = textareaRef.current;
     textarea.style.height = "auto"; // Reset height
-    textarea.style.height = textarea.scrollHeight + "px";
+    textarea.style.height = `${textarea.scrollHeight}px`;
   }, [value, editing]);
 
   if (!editing) {
@@ -66,4 +74,3 @@ export default function TranscriptBlockText({
     </form>
   );
 }
-

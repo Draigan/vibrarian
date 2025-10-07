@@ -11,13 +11,13 @@ import { SessionButton } from "../SessionButton";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import { History } from "lucide-react";
 
-type SessionType = {
+interface SessionType {
   id: string;
   title: string;
   created_at: string;
-};
+}
 
-type Props = {
+interface Props {
   sessions: SessionType[];
   sessionId: string | null;
   loading: boolean;

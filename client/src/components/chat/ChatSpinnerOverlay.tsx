@@ -1,7 +1,11 @@
-import React from "react";
+import type { ReactNode } from "react";
 
 // Spinner as an animated SVG ring
-function Spinner({ className = "" }: { className?: string }) {
+interface SpinnerProps {
+  className?: string;
+}
+
+function Spinner({ className = "" }: SpinnerProps) {
   return (
     <svg
       className={`animate-spin ${className}`}
@@ -27,15 +31,17 @@ function Spinner({ className = "" }: { className?: string }) {
   );
 }
 
+interface Props {
+  loading: boolean;
+  children: ReactNode;
+  spinnerClassName?: string;
+}
+
 export function SpinnerOverlay({
   loading,
   children,
   spinnerClassName = "text-primary absolute inset-0 z-10 pointer-events-none",
-}: {
-  loading: boolean;
-  children: React.ReactNode;
-  spinnerClassName?: string;
-}) {
+}: Props) {
   return (
     <div className="relative inline-block">
       {children}

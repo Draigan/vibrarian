@@ -1,4 +1,5 @@
 import { Menu } from "lucide-react"
+import type { ReactNode } from "react"
 import {
   Sheet,
   SheetContent,
@@ -9,10 +10,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { SidebarNavButton } from "@/components/layout/SidebarNavButton"
 
-type NavLink = {
+interface NavLink {
   to: string
   label: string
-  icon: React.ReactNode
+  icon: ReactNode
   show: boolean
 }
 
@@ -51,4 +52,3 @@ export function MobileMenu({ navLinks }: MobileMenuProps) {
     </div>
   );
 }
-

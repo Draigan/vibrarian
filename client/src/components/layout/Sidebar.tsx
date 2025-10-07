@@ -3,19 +3,19 @@ import { SidebarNavLinks } from "./SidebarNavLinks";
 import { SidebarFooter } from "./SidebarFooter";
 import { type UserSettings } from "@/types/user_settings";
 
-type NavLink = {
+interface NavLink {
   to: string;
   label: string;
   icon: ReactNode;
   show: boolean;
 }
 
-type SidebarProps = {
+interface Props {
   navLinks: NavLink[];
   settings: UserSettings;
   handleLogout: () => void;
 }
-export function Sidebar({ navLinks, settings, handleLogout }: SidebarProps) {
+export function Sidebar({ navLinks, settings, handleLogout }: Props) {
   const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
   const [hovered, setHovered] = useState(false);
   const collapsed = manuallyCollapsed && !hovered;

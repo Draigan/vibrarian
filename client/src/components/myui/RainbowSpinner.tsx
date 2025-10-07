@@ -1,12 +1,12 @@
-import React from "react";
+interface Props {
+  size?: number;
+  className?: string;
+}
 
 export function RainbowSpinner({
   size = 48,
   className = "",
-}: {
-  size?: number;
-  className?: string;
-}) {
+}: Props) {
   // Rainbow Pride colors (classic 6-color flag)
   const prideColors = [
     "#e40303", // Red
@@ -80,4 +80,3 @@ export function RainbowSpinner({
     </div>
   );
 }
-

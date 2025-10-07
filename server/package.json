@@ -19,6 +19,9 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "dev": "node --loader ts-node/esm index.ts"
+    "dev": "node --loader ts-node/esm index.ts",
+    "build": "tsc --project tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --project tsconfig.json"
   }
 }

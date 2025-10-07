@@ -9,10 +9,10 @@
 import { useRef, useImperativeHandle, useCallback, useLayoutEffect, useEffect, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentProps<"textarea"> & {
+interface Props extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   value: string;
   maxPx?: number;
-};
+}
 
 const ChatTextArea = forwardRef<HTMLTextAreaElement, Props>(
   ({ className, value, maxPx = 200, ...props }, forwardedRef) => {
@@ -75,4 +75,3 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, Props>(
 );
 
 export default ChatTextArea;
-

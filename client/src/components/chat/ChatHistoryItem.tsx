@@ -16,10 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 
-type Props = {
+interface Props {
   id: string;
   title?: string;
   active: boolean;
@@ -30,7 +29,7 @@ type Props = {
   setSidebarLocked?: (locked: boolean) => void;
   onStartRename?: (id: string) => void;
   onCancelRename?: () => void;
-};
+}
 
 export function ChatHistoryItem({
   id,
@@ -67,7 +66,7 @@ export function ChatHistoryItem({
     }
   };
 
-  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+  const handleRenameKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleRenameSubmit();
@@ -176,4 +175,3 @@ export function ChatHistoryItem({
     </div>
   );
 }
-

@@ -54,9 +54,15 @@ export function ChatProvider({ children }: Props) {
   // Messages for the active session
   const { data: messages = [], status } = useChatMessages(sessionId);
 
-  const allMessages = virtuosoRef.current?.data.get?.() || messages;
+  const getVirtuosoMessages = () =>
+    (virtuosoRef.current?.data.get?.() as ChatMessage[] | undefined) ?? [];
+
+  const virtuosoMessages = getVirtuosoMessages();
+  const allMessages: ChatMessage[] = virtuosoMessages.length
+    ? virtuosoMessages
+    : messages;
   const assistantIsTyping = allMessages.some(
-    (m) => m.status === "pending"
+    (m: ChatMessage) => m.status === "pending"
   );
   const previousSessionId = useRef<string | null>(null);
 
@@ -66,8 +72,11 @@ export function ChatProvider({ children }: Props) {
   function handleAbortMessage() {
     abortMessage();
 
-    const updated = (virtuosoRef.current?.data.get?.() || messages).map(
-      (m) =>
+    const currentMessages = getVirtuosoMessages();
+    const baseMessages =
+      currentMessages.length > 0 ? currentMessages : messages;
+
+    const updated = baseMessages.map((m: ChatMessage) =>
         m.role === "assistant" && m.status === "pending"
           ? { ...m, status: "aborted" as const }
           : m
@@ -80,11 +89,13 @@ export function ChatProvider({ children }: Props) {
   // Retry: find the user message before the failed assistant
   // ----------------------
   function handleRetry(msg: ChatMessage) {
-    const all = virtuosoRef.current?.data.get?.() || messages;
-    const idx = all.findIndex((m) => m.id === msg.id);
+    const currentMessages = getVirtuosoMessages();
+    const baseMessages =
+      currentMessages.length > 0 ? currentMessages : messages;
+    const idx = baseMessages.findIndex((m: ChatMessage) => m.id === msg.id);
 
     if (idx > 0) {
-      const prev = all[idx - 1];
+      const prev = baseMessages[idx - 1];
       if (prev && prev.role === "user" && prev.content) {
         sendMessage(prev.content); // re-send the original user message
       }
@@ -102,12 +113,12 @@ export function ChatProvider({ children }: Props) {
     setSessionId(id);
   }
   useEffect(() => {
-    const virtuosoMessages = virtuosoRef.current?.data.get?.() || [];
+    const virtuosoMessages: ChatMessage[] = getVirtuosoMessages();
     const pendingMessages = virtuosoMessages.filter(
-      (m) => m.status === "pending"
+      (m: ChatMessage) => m.status === "pending"
     );
     const nonPendingVirtuoso = virtuosoMessages.filter(
-      (m) => m.status !== "pending"
+      (m: ChatMessage) => m.status !== "pending"
     );
 
     const hasSameMessages =

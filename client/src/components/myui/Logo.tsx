@@ -1,10 +1,12 @@
+interface Props {
+  height?: number;
+  className?: string;
+}
+
 export function Logo({
   height = 128,
   className = "",
-}: {
-  height?: number;
-  className?: string;
-}) {
+}: Props) {
   return (
     <img
       src="/vibrarian.jpg"
