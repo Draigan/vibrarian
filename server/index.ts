@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.js";
 import chatRoutes from "./routes/chat.js";
 import chatSessionRouter from "./routes/chatSession.js";
 import transcriptRouter from "./routes/transcripts.js";
+import voiceRouter from "./routes/voice.js";
 import './db_listeners/chatRenameListener.js'
 
 const app = express();
@@ -36,17 +37,18 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 app.use(cookieParser());
 
 app.use("/api", chatRoutes);
 app.use("/api", transcriptRouter);
 app.use("/api", chatSessionRouter);
 app.use("/api", authRouter);
+app.use("/api", voiceRouter);
 
 app.listen(port, () => {
   logger.info(`Server running on http://localhost:${port}`);
 });
 
 export { logger }; 
-
