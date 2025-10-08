@@ -1,7 +1,8 @@
 import * as React from "react";
 import ChatTextArea from "./ChatTextArea";
+import VoiceVisualizer from "./VoiceVisualizer";
 import { cn } from "@/lib/utils";
-import { ArrowUp, Square, Mic, Loader2 } from "lucide-react";
+import { ArrowUp, Square, Mic, Check } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useChat } from "@/context/ChatContext";
 
@@ -49,7 +50,10 @@ export default function ChatInput({
 
     return () => {
       discardRecordingRef.current = true;
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state !== "inactive"
+      ) {
         try {
           mediaRecorderRef.current.stop();
         } catch {
@@ -321,7 +325,10 @@ export default function ChatInput({
 
       recorder.onstart = () => {
         setIsRecording(true);
-        console.debug("Voice recorder started with mime type:", activeMimeTypeRef.current);
+        console.debug(
+          "Voice recorder started with mime type:",
+          activeMimeTypeRef.current
+        );
       };
 
       mediaRecorderRef.current = recorder;
@@ -353,9 +360,7 @@ export default function ChatInput({
   };
 
   const handleMicClick = () => {
-    if (isLoading || isTranscribing) {
-      return;
-    }
+    if (isTranscribing) return;
 
     if (!isRecordingSupported) {
       if (typeof window !== "undefined") {
@@ -374,6 +379,15 @@ export default function ChatInput({
     void startRecording();
   };
 
+  const handleCancelRecording = () => {
+    discardRecordingRef.current = true;
+    stopRecording();
+  };
+
+  const handleConfirmRecording = () => {
+    stopRecording();
+  };
+
   const micTitle = !isRecordingSupported
     ? "Voice capture needs a browser with MediaRecorder support."
     : isTranscribing
@@ -388,42 +402,45 @@ export default function ChatInput({
       onSubmit={handleOnSubmit}
       className="flex flex-col w-full p-3 gap-0"
     >
-      <ChatTextArea
-        ref={inputRef}
-        value={input}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        placeholder="Ask Vibrarian"
-        rows={1}
-      />
+      <div className="relative w-full">
+        <ChatTextArea
+          ref={inputRef}
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask Vibrarian"
+          rows={1}
+          className={cn(
+            "transition-opacity duration-200",
+            isRecording && "opacity-0 pointer-events-none select-none"
+          )}
+        />
+        <VoiceVisualizer
+          stream={isRecording ? audioStreamRef.current : null}
+          isRecording={isRecording}
+          isTranscribing={isTranscribing}
+        />
+      </div>
       <div className="flex justify-end gap-2 items-center">
         <button
           type="button"
-          onClick={handleMicClick}
+          onClick={isRecording ? handleCancelRecording : handleMicClick}
           aria-label={
-            isRecording
-              ? "Stop voice recording"
-              : "Start voice recording"
+            isRecording ? "Cancel voice recording" : "Start voice recording"
           }
           aria-pressed={isRecording}
-          aria-disabled={isLoading || isTranscribing}
-          title={micTitle}
+          aria-disabled={isTranscribing}
+          title={isRecording ? "Cancel recording" : micTitle}
           className={cn(
             "p-2 rounded-full transition shadow border border-border text-muted-foreground cursor-pointer",
-            isRecording && "bg-primary text-black",
-            (isLoading || isTranscribing) && "opacity-50 cursor-default"
+            isRecording && "bg-destructive text-destructive-foreground",
+            isTranscribing && "opacity-50 cursor-default"
           )}
         >
-          {isTranscribing ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : isRecording ? (
-            <Square className="w-5 h-5" />
-          ) : (
-            <Mic className="w-5 h-5" />
-          )}
+          {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
         </button>
 
-        {!isLoading && (
+        {!isLoading && !isRecording && (
           <button
             type="submit"
             disabled={isLoading || input.trim().length === 0}
@@ -449,6 +466,18 @@ export default function ChatInput({
             </div>
           </button>
         )}
+
+        {isRecording && !isTranscribing && (
+          <button
+            type="button"
+            onClick={handleConfirmRecording}
+            className="bg-primary text-black p-2 rounded-full transition shadow"
+            aria-label="Confirm recording"
+          >
+            <Check className="w-5 h-5" />
+          </button>
+        )}
+
       </div>
     </form>
   );
